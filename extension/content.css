@@ -1,0 +1,214 @@
+/* ------------------------------------------------------------ panel */
+.sdkh-panel {
+  position: fixed;
+  top: 80px;
+  right: 16px;
+  z-index: 2147483000;
+  width: 260px;
+  background: rgba(255, 255, 255, .96);
+  border: 1px solid #d5dcea;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(30, 50, 100, .14);
+  font: 13px/1.3 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #1e2a44;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+}
+.sdkh-dragging { cursor: grabbing; box-shadow: 0 12px 32px rgba(30, 50, 100, .28); }
+.sdkh-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 10px;
+  background: #325aaf;
+  color: #fff;
+  font-weight: 600;
+  touch-action: none;
+}
+.sdkh-min { all: unset; cursor: pointer; padding: 0 4px; font-size: 16px; line-height: 1; }
+.sdkh-collapsed .sdkh-body { display: none; }
+.sdkh-body { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+
+.sdkh-fair { padding: 8px 10px; border: 1px solid #f0d58a; border-radius: 8px; background: #fff8e1; font-size: 12px; color: #5d4a12; }
+.sdkh-fair[hidden] { display: none; }
+.sdkh-fair p { margin: 4px 0 6px; line-height: 1.35; }
+.sdkh-fair-ok { padding: 3px 10px; border: 1px solid #e0c46a; border-radius: 6px; background: #fff; color: #5d4a12; font: inherit; cursor: pointer; }
+.sdkh-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.sdkh-actions button {
+  padding: 7px 6px;
+  border: 1px solid #c9d3e6;
+  border-radius: 8px;
+  background: #eef2fa;
+  color: #1e2a44;
+  font: inherit;
+  cursor: pointer;
+}
+.sdkh-actions button:hover { background: #dfe7f7; }
+.sdkh-actions .sdkh-one-btn { grid-column: 1 / -1; background: #e8f5ec; border-color: #9fd3b0; color: #1f6b3b; font-weight: 600; }
+.sdkh-actions .sdkh-one-btn:hover { background: #d6eedf; }
+.sdkh-pin {
+  display: grid;
+  grid-template-columns: 9px auto 1fr auto;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 6px 5px 8px;
+  border: 1px solid #9fd3b0;
+  border-radius: 8px;
+  background: #f2faf5;
+  font-size: 12px;
+}
+.sdkh-pin[hidden] { display: none; }
+.sdkh-pin span { color: #4a6b57; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sdkh-unpin { all: unset; cursor: pointer; color: #6b7590; padding: 0 3px; }
+.sdkh-unpin:hover { color: #1e2a44; }
+.sdkh-busy .sdkh-actions button { opacity: .5; pointer-events: none; }
+
+.sdkh-summary { font-size: 12px; color: #6b7590; }
+.sdkh-summary.sdkh-yes { color: #1e2a44; font-weight: 600; }
+.sdkh-summary.sdkh-err { color: #c62828; font-weight: 600; }
+
+.sdkh-cats { display: flex; flex-direction: column; gap: 2px; max-height: 360px; overflow-y: auto; }
+.sdkh-cat-head {
+  display: grid;
+  grid-template-columns: 16px 1fr auto;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 6px;
+  border-radius: 7px;
+  cursor: pointer;
+  color: #8a93a8;
+}
+.sdkh-cat-head:hover { background: #f1f4fa; }
+.sdkh-cat.sdkh-has .sdkh-cat-head { color: #1e2a44; font-weight: 600; }
+.sdkh-eye {
+  all: unset;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+.sdkh-cat:not(.sdkh-off) .sdkh-eye { background: currentColor; }
+.sdkh-cat.sdkh-off .sdkh-cat-head { opacity: .55; }
+.sdkh-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: #eef0f5;
+  text-align: center;
+  font-weight: 600;
+  color: #8a93a8;
+}
+.sdkh-cat.sdkh-has .sdkh-count { background: #325aaf; color: #fff; }
+.sdkh-cat[data-cat="single"].sdkh-has .sdkh-count { background: #2e9d57; }
+
+.sdkh-items { display: flex; flex-direction: column; margin: 0 0 2px 22px; }
+.sdkh-item {
+  display: grid;
+  grid-template-columns: 9px auto 1fr auto;
+  gap: 6px;
+  align-items: center;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: default;
+}
+.sdkh-item:hover { background: #eef2fa; }
+.sdkh-dot { width: 9px; height: 9px; border-radius: 50%; }
+.sdkh-dot.sdkh-green { background: #2e9d57; }
+.sdkh-item span { color: #6b7590; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sdkh-step { font-size: 10px; font-weight: 600; color: #5c6bc0; background: #eceffa; border-radius: 6px; padding: 1px 5px; white-space: nowrap; }
+.sdkh-item em { font-style: normal; color: #c62828; font-weight: 600; }
+
+.sdkh-status { min-height: 14px; font-size: 12px; }
+.sdkh-status:empty { display: none; }
+.sdkh-status.sdkh-ok { color: #2e7d4a; }
+.sdkh-status.sdkh-warn { color: #a26a00; }
+.sdkh-status.sdkh-err { color: #c62828; }
+
+/* ------------------------------------------------------------ grid overlay */
+.sdkh-overlay {
+  position: absolute;
+  z-index: 2147482000;
+  display: none;
+  grid-template-columns: repeat(9, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  pointer-events: none;
+}
+.sdkh-overlay > div { position: relative; }
+
+/* single option: the only green on the board — light tint + small digit */
+.sdkh-overlay > .sdkh-single { background: rgba(46, 157, 87, .12); }
+.sdkh-overlay > .sdkh-single.sdkh-strong { background: rgba(46, 157, 87, .26); box-shadow: inset 0 0 0 2px rgba(46, 157, 87, .8); }
+.sdkh-pill {   /* "!" on a cell with no possible digit */
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 15px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+/* the row / column / box a hidden single is alone in (on hover) */
+.sdkh-overlay > .sdkh-unit { background: rgba(90, 100, 130, .07); }
+.sdkh-overlay > .sdkh-dead { background: rgba(229, 57, 53, .14); }
+.sdkh-dead .sdkh-pill { color: #c62828; }
+
+/* note-position marks */
+.sdkh-key, .sdkh-elim, .sdkh-elim-soft, .sdkh-one {
+  position: absolute;
+  z-index: 0;
+  width: 33.333%;
+  height: 33.333%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 11px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-style: normal;
+}
+/* single option: the green digit, at its note position */
+.sdkh-one { color: #1f7a3f; font-size: 12px; }
+.sdkh-one::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  z-index: -1;
+  border-radius: 50%;
+  background: rgba(46, 157, 87, .2);
+}
+.sdkh-strong .sdkh-one { color: #fff; }
+.sdkh-strong .sdkh-one::before { background: #2e9d57; }
+/* group digit, shown on hover only */
+.sdkh-key { color: #fff; }
+.sdkh-key::before {
+  content: "";
+  position: absolute;
+  inset: 10%;
+  z-index: -1;
+  border-radius: 50%;
+  background: var(--c);
+}
+/* erasable note — faint by default: just a thin red strike over the note */
+.sdkh-elim-soft { color: transparent; }
+.sdkh-elim-soft::after {
+  content: "";
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  top: 50%;
+  height: 1.5px;
+  background: rgba(229, 57, 53, .6);
+  transform: rotate(-35deg);
+}
+/* erasable note — on hover: red ring, struck through */
+.sdkh-elim { color: #c62828; text-decoration: line-through; text-decoration-thickness: 2px; }
+.sdkh-elim::before {
+  content: "";
+  position: absolute;
+  inset: 10%;
+  z-index: -1;
+  border-radius: 50%;
+  background: rgba(255, 228, 228, .9);
+  box-shadow: 0 0 0 1.5px #e53935;
+}

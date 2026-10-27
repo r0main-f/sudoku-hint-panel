@@ -20,7 +20,7 @@ Done: https://github.com/r0main-f/sudoku-hint-panel
 - **Description:** paste the English description from `store/listing-en.md`. The summary comes from the manifest (`description`).
 - **Category:** Games (or Education).
 - **Language:** English. Then add **French** and paste `store/listing-fr.md`.
-- **Graphics:** icon 128 px is taken from the zip; upload the three `store/screenshot-*.png` (1280×800) and `store/promo-tile-440x280.png` as the small promo tile.
+- **Graphics:** store icon = `store/store-icon-128.png` (128×128, 96 px artwork with transparent padding); upload the three `store/screenshot-*.png` (1280×800) and `store/promo-tile-440x280.png` as the small promo tile.
 - **Additional fields:** homepage URL = GitHub repository; support URL = the repository's Issues page.
 
 ## 5. Privacy tab

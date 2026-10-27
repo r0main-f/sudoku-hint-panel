@@ -327,6 +327,56 @@
 
   // ---------------------------------------------------------------- input
   const canvas = () => document.querySelector('#game canvas');
+
+  // ---------------------------------------------------------------- board geometry
+  // sudoku.com draws a thick outer border and thick 3x3 box lines, so cells do
+  // not sit on exact ninths of the canvas. Read where those dark lines are (one
+  // pixel row and one column just inside the top-left cell) and split each box
+  // into three. Falls back to even ninths if the lines can't be read.
+  const UNIFORM = Array.from({ length: 9 }, (_, k) => [k / 9, (k + 1) / 9]);
+  let geom = { key: '', t: 0, cols: UNIFORM, rows: UNIFORM };
+  function darkRuns(data, n) {
+    const runs = [];
+    let s0 = -1;
+    for (let i = 0; i < n; i++) {
+      const o = i * 4;
+      const dk = data[o + 3] > 200 && data[o] + data[o + 1] + data[o + 2] < 330;
+      if (dk && s0 < 0) s0 = i;
+      if (!dk && s0 >= 0) { runs.push([s0, i - 1]); s0 = -1; }
+    }
+    if (s0 >= 0) runs.push([s0, n - 1]);
+    return runs;
+  }
+  function spans(runs, n) {
+    if (runs.length !== 4 || runs[0][0] > n * 0.02 || runs[3][1] < n * 0.98) return null;
+    if (runs.some(([a, b]) => b - a > n * 0.03)) return null;
+    const out = [];
+    for (let b = 0; b < 3; b++) {
+      const a = runs[b][1] + 1, z = runs[b + 1][0], w = (z - a) / 3;
+      for (let k = 0; k < 3; k++) out.push([(a + k * w) / n, (a + (k + 1) * w) / n]);
+    }
+    return out;
+  }
+  function boardGeometry(cv) {
+    const key = cv.width + 'x' + cv.height;
+    if (geom.key === key && Date.now() - geom.t < 5000) return geom;
+    let cols = null, rows = null;
+    try {
+      const ctx = cv.getContext('2d');
+      if (ctx) {
+        const W = cv.width, H = cv.height;
+        cols = spans(darkRuns(ctx.getImageData(0, Math.round(H * 0.012), W, 1).data, W), W);
+        rows = spans(darkRuns(ctx.getImageData(Math.round(W * 0.012), 0, 1, H).data, H), H);
+      }
+    } catch (e) { /* unreadable canvas: keep even ninths */ }
+    geom = { key, t: Date.now(), cols: cols || UNIFORM, rows: rows || UNIFORM };
+    return geom;
+  }
+  // a cell's rectangle in page pixels
+  function cellBox(i, r, g) {
+    const [x0, x1] = g.cols[i % 9], [y0, y1] = g.rows[Math.floor(i / 9)];
+    return { x: r.left + x0 * r.width, y: r.top + y0 * r.height, w: (x1 - x0) * r.width, h: (y1 - y0) * r.height };
+  }
   const pencilBtn = () => document.querySelector('.game-controls-pencil');
   const undoBtn = () => document.querySelector('.game-controls-undo');
 
@@ -344,8 +394,8 @@
 
   function selectCell(i) {
     const cv = canvas();
-    const r = cv.getBoundingClientRect(), s = r.width / 9;
-    const x = r.left + ((i % 9) + 0.5) * s, y = r.top + (Math.floor(i / 9) + 0.5) * s;
+    const r = cv.getBoundingClientRect(), b = cellBox(i, r, boardGeometry(cv));
+    const x = b.x + b.w / 2, y = b.y + b.h / 2;
     for (const t of ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click']) mouse(cv, t, x, y);
   }
 
@@ -500,9 +550,11 @@
   const cells = Array.from({ length: 81 }, () => overlay.appendChild(document.createElement('div')));
   document.body.appendChild(overlay);
 
+  // Centres of sudoku.com's pencil-note slots, measured on its board (fraction of a cell).
+  const NOTE_X = [0.218, 0.505, 0.792], NOTE_Y = [0.228, 0.516, 0.802], SLOT = 0.3;
   const notePos = (m, d) => {
-    m.style.left = ((d - 1) % 3) * 33.333 + '%';
-    m.style.top = Math.floor((d - 1) / 3) * 33.333 + '%';
+    m.style.left = (NOTE_X[(d - 1) % 3] - SLOT / 2) * 100 + '%';
+    m.style.top = (NOTE_Y[Math.floor((d - 1) / 3)] - SLOT / 2) * 100 + '%';
   };
   function mark(cell, cls, d, color) {
     if (cell.querySelector(`.${cls}[data-d="${d}"]`)) return;
@@ -520,7 +572,7 @@
   // top-most element at its centre is the game board itself.
   function coverMap(cv, r) {
     const game = cv.closest('#game') || cv.parentElement;
-    const s = r.width / 9, out = new Array(81);
+    const g = boardGeometry(cv), out = new Array(81);
     const onBoard = (x, y) => {
       const el = (x >= 0 && y >= 0 && x < innerWidth && y < innerHeight) ? document.elementFromPoint(x, y) : null;
       return !!(el && (el === cv || el.contains(cv) || game.contains(el)));
@@ -528,8 +580,8 @@
     // centre + 4 points near the corners: a partly covered cell counts as covered
     const pts = [[0.5, 0.5], [0.12, 0.12], [0.88, 0.12], [0.12, 0.88], [0.88, 0.88]];
     for (let i = 0; i < 81; i++) {
-      const x0 = r.left + (i % 9) * s, y0 = r.top + Math.floor(i / 9) * s;
-      out[i] = !pts.every(([fx, fy]) => onBoard(x0 + fx * s, y0 + fy * s));
+      const b = cellBox(i, r, g);
+      out[i] = !pts.every(([fx, fy]) => onBoard(b.x + fx * b.w, b.y + fy * b.h));
     }
     return out;
   }
@@ -579,10 +631,18 @@
     cells.forEach((el) => { el.className = ''; el.removeAttribute('style'); el.textContent = ''; });
     if (!r) { overlay.style.display = 'none'; return; }
     Object.assign(overlay.style, {
-      display: 'grid',
+      display: 'block',
       left: r.left + scrollX + 'px', top: r.top + scrollY + 'px',
       width: r.width + 'px', height: r.height + 'px',
     });
+    {
+      const g = boardGeometry(cv);
+      cells.forEach((el, i) => {
+        const [x0, x1] = g.cols[i % 9], [y0, y1] = g.rows[Math.floor(i / 9)];
+        el.style.left = x0 * 100 + '%'; el.style.width = (x1 - x0) * 100 + '%';
+        el.style.top = y0 * 100 + '%'; el.style.height = (y1 - y0) * 100 + '%';
+      });
+    }
 
     const visible = (cat, k) => {
       if (F) return F.cat === cat && (F.k == null || F.k === k);

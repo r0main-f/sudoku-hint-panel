@@ -133,11 +133,9 @@
   position: absolute;
   z-index: 2147482000;
   display: none;
-  grid-template-columns: repeat(9, 1fr);
-  grid-template-rows: repeat(9, 1fr);
   pointer-events: none;
 }
-.sdkh-overlay > div { position: relative; }
+.sdkh-overlay > div { position: absolute; }
 
 /* single option: the only green on the board — light tint + small digit */
 .sdkh-overlay > .sdkh-single { background: rgba(46, 157, 87, .12); }
@@ -159,8 +157,8 @@
 .sdkh-key, .sdkh-elim, .sdkh-elim-soft, .sdkh-one {
   position: absolute;
   z-index: 0;
-  width: 33.333%;
-  height: 33.333%;
+  width: 30%;
+  height: 30%;
   display: flex;
   align-items: center;
   justify-content: center;

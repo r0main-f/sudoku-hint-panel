@@ -173,7 +173,7 @@
   inset: 8%;
   z-index: -1;
   border-radius: 50%;
-  background: rgba(46, 157, 87, .2);
+  background: #d5ecdc;   /* solid light green, so the pencil note underneath never shows through */
 }
 .sdkh-strong .sdkh-one { color: #fff; }
 .sdkh-strong .sdkh-one::before { background: #2e9d57; }
@@ -229,6 +229,10 @@
 .sdkh-no.sdkh-no-hint { color: rgba(229, 57, 53, .75); }
 /* the cells of an earlier hint that was needed, with its digits */
 .sdkh-hintdigit { color: #d32f2f; font-size: 12px; }
+.sdkh-hintdigit::before {   /* solid, so the pencil note underneath never shows through */
+  content: ""; position: absolute; inset: 8%; z-index: -1; border-radius: 50%;
+  background: #fff; box-shadow: 0 0 0 1px rgba(229, 57, 53, .45);
+}
 .sdkh-overlay > .sdkh-hintcell { box-shadow: inset 0 0 0 2px rgba(229, 57, 53, .55); }
 /* one-line label above the board, over the single's column */
 .sdkh-chip {

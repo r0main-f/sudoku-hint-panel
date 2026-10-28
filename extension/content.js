@@ -322,7 +322,7 @@
     const order = (p, q) => p.step - q.step || p.cells[0] - q.cells[0];
     const subsets = hints.filter((g) => g.kind !== 'pointing').sort(order);
     const pointing = hints.filter((g) => g.kind === 'pointing').sort(order);
-    return { cand: cand0, singles, dead, subsets, pointing, hints };
+    return { cand: cand0, singles, dead, subsets, pointing, hints, removedBy, usesNotes: notesComplete(st) };
   }
 
   // ---------------------------------------------------------------- input
@@ -543,6 +543,7 @@
   ];
   let focus = null; // hover: { cat } or { cat, k }
   let pin = null;   // "ONE single": { i, d } kept on the grid until that cell is filled
+  let gridHover = null; // cell index of a green single under the mouse on the board
   let pinTurn = 0;  // which single the next click picks
 
   const overlay = document.createElement('div');
@@ -594,12 +595,13 @@
     const r = cv ? cv.getBoundingClientRect() : null;
     const covered = r ? coverMap(cv, r) : null;
     const sig = [st.raw || st.error, r ? [r.left, r.top, r.width, scrollX, scrollY].join() : '',
-      JSON.stringify(opts.show), JSON.stringify(focus), JSON.stringify(pin), covered ? covered.map(Number).join('') : ''].join('|');
+      JSON.stringify(opts.show), JSON.stringify(focus), JSON.stringify(pin), gridHover, covered ? covered.map(Number).join('') : ''].join('|');
     if (!force && sig === lastSig) return;
     lastSig = sig;
 
     if (st.error) {
       overlay.style.display = 'none';
+      hideTip();
       last = null;
       renderPanel(null, st.error);
       return;
@@ -624,7 +626,15 @@
         status(done ? 'Done. Click “ONE single” for the next one.' : 'That single no longer applies.', done ? 'ok' : 'warn');
       }
     }
-    const F = focus || (pinK >= 0 ? { cat: 'single', k: pinK } : null);
+    // a green single hovered on the grid: show it with its reasoning, plus a short explanation
+    let hoverK = -1;
+    if (gridHover != null && !focus) {
+      hoverK = a.singles.findIndex((sg) => sg.i === gridHover && singleShown(sg.i));
+      if (hoverK < 0 || (covered && covered[gridHover])) { hoverK = -1; gridHover = null; }
+    }
+    const F = focus || (hoverK >= 0 ? { cat: 'single', k: hoverK } : null) || (pinK >= 0 ? { cat: 'single', k: pinK } : null);
+    if (hoverK >= 0 && r) showTip(a.singles[hoverK], st, a, cellBox(gridHover, r, boardGeometry(cv)));
+    else hideTip();
     renderPanel(last, null);
     renderPin(pinK >= 0 ? a.singles[pinK] : null);
 
@@ -714,6 +724,105 @@
     covered.forEach((hid, i) => { if (hid) cells[i].style.visibility = 'hidden'; });
     if (covered.every(Boolean)) overlay.style.display = 'none';
   }
+
+  // ---------------------------------------------------------------- "why is it a single?"
+  const tip = document.createElement('div');
+  tip.className = 'sdkh-tip';
+  tip.hidden = true;
+  document.body.appendChild(tip);
+  function hideTip() { tip.hidden = true; }
+
+  const unitOf = (name) => UNITS.find((u) => u.name === name);
+  const unitsOfCell = (i) => [UNITS[Math.floor(i / 9)], UNITS[9 + (i % 9)], UNITS[18 + Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3)]];
+  const hintLabel = (g) => `${KIND_LABEL[g.kind]} ${g.digits.join('·')} (${g.units.join(' + ')})`;
+  const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+
+  // Why digit d cannot go in cell i: a placed digit in its row/column/box,
+  // an earlier hint that erased it, or the player's own notes.
+  function whyNot(i, d, st, a, skipUnit) {
+    for (const u of unitsOfCell(i)) {
+      if (u.name !== skipUnit && u.cells.some((j) => st.grid[j] === d)) return { key: u.name, text: `${u.name} has ${d}` };
+    }
+    const h = a.removedBy.get(i + ':' + d);
+    if (h != null) return { key: 'h' + h, text: `erased by ${hintLabel(a.hints[h])}` };
+    if (a.usesNotes && !st.notes[i].has(d)) return { key: 'notes', text: 'not in your notes' };
+    return { key: '?', text: 'excluded' };
+  }
+
+  function explainSingle(sg, st, a) {
+    const lines = [];
+    if (sg.kind === 'naked') {
+      // group the 8 other digits by what rules them out
+      const units = new Map(), others = new Map();
+      for (let d = 1; d <= 9; d++) {
+        if (d === sg.d) continue;
+        const w = whyNot(sg.i, d, st, a);
+        const into = /^(row|column|box) /.test(w.key) ? units : others;
+        if (!into.has(w.key)) into.set(w.key, { text: w.text, ds: [] });
+        into.get(w.key).ds.push(d);
+      }
+      // placed digits first, in row / column / box order, then erasures
+      for (const u of unitsOfCell(sg.i)) if (units.has(u.name)) lines.push(`<b>${cap(u.name)}</b> has ${units.get(u.name).ds.join(' ')}`);
+      for (const g of others.values()) lines.push(`<b>${g.ds.join(', ')}</b> — ${g.text}`);
+      return { title: `${cellName(sg.i)} → ${sg.d}`, sub: 'Only digit left in this cell', lines, end: `Every other digit is ruled out, so it must be ${sg.d}.` };
+    }
+    // hidden single: every other empty cell of the unit is ruled out for this digit
+    const u = unitOf(sg.unit);
+    const groups = new Map();
+    for (const j of u.cells) {
+      if (j === sg.i || st.grid[j]) continue;
+      const w = whyNot(j, sg.d, st, a, u.name);
+      if (!groups.has(w.key)) groups.set(w.key, { text: w.text, cells: [] });
+      groups.get(w.key).cells.push(cellName(j));
+    }
+    for (const g of groups.values()) lines.push(`<b>${g.cells.join(', ')}</b> — ${g.text}`);
+    return { title: `${cellName(sg.i)} → ${sg.d}`, sub: `Only place for ${sg.d} in ${sg.unit}`, lines, end: `No other cell of ${sg.unit} can take ${sg.d}.` };
+  }
+
+  function showTip(sg, st, a, box) {
+    const e = explainSingle(sg, st, a);
+    tip.innerHTML = `<div class="sdkh-tip-h"><i class="sdkh-dot sdkh-green"></i><b>${e.title}</b>${sg.step > 1 ? `<small class="sdkh-step">step ${sg.step}</small>` : ''}</div>
+      <div class="sdkh-tip-sub">${e.sub}</div>
+      <ul>${e.lines.map((l) => `<li>${l}</li>`).join('')}</ul>
+      <div class="sdkh-tip-end">${e.end}${sg.step > 1 ? ' The hints it relies on are shown on the grid.' : ''}</div>`;
+    tip.hidden = false;
+    const tw = tip.offsetWidth, th = tip.offsetHeight, gap = 10;
+    let x = box.x + box.w + gap;
+    if (x + tw > innerWidth - 8) x = box.x - tw - gap;          // not enough room on the right
+    x = Math.max(8, x);
+    const y = Math.min(Math.max(8, box.y + box.h / 2 - th / 2), innerHeight - th - 8);
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+  }
+
+  // Is this cell's green single drawn on the grid right now?
+  const singleShown = (i) => opts.show.single || (pin && pin.i === i);
+
+  // Track the mouse over the board (the overlay itself lets clicks through).
+  function cellAt(x, y) {
+    const cv = canvas();
+    if (!cv) return null;
+    const r = cv.getBoundingClientRect();
+    if (x < r.left || y < r.top || x >= r.right || y >= r.bottom) return null;
+    const g = boardGeometry(cv), fx = (x - r.left) / r.width, fy = (y - r.top) / r.height;
+    const c = g.cols.findIndex(([a0, a1]) => fx >= a0 && fx < a1), rr = g.rows.findIndex(([a0, a1]) => fy >= a0 && fy < a1);
+    return c < 0 || rr < 0 ? null : rr * 9 + c;
+  }
+  let moveQueued = false, lastXY = null;
+  document.addEventListener('mousemove', (e) => {
+    lastXY = [e.clientX, e.clientY];
+    if (moveQueued) return;
+    moveQueued = true;
+    requestAnimationFrame(() => {
+      moveQueued = false;
+      if (busy || !last) return;
+      const i = cellAt(lastXY[0], lastXY[1]);
+      const hit = i != null && singleShown(i) && last.singles.some((sg) => sg.i === i) && cells[i].style.visibility !== 'hidden'
+        && !(e.target && e.target.closest && e.target.closest('.sdkh-panel')) ? i : null;
+      if (hit !== gridHover) { gridHover = hit; render(true); }
+    });
+  }, { passive: true, capture: true });
+  document.addEventListener('mouseleave', () => { if (gridHover != null) { gridHover = null; render(true); } });
 
   // ---------------------------------------------------------------- panel
   const panel = document.createElement('div');

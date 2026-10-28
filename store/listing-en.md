@@ -18,6 +18,7 @@ LEARN AT YOUR OWN LEVEL
 • One technique: open a category to see its hints faintly on the grid.
 • One hint: "☝ ONE single" shows a single next move, easiest first, and keeps it until you fill the cell.
 • The reasoning: hover any hint to see the earlier hints it relies on and the notes they let you erase — so next time you can find it yourself.
+• Why it's a single: hover a green cell on the grid for a short card explaining exactly what rules out every other option.
 
 TECHNIQUES
 • Single option — a cell where only one digit fits, or a digit with only one place left in a row, column or box.

@@ -543,7 +543,7 @@
   ];
   let focus = null; // hover: { cat } or { cat, k }
   let pin = null;   // "ONE single": { i, d } kept on the grid until that cell is filled
-  let gridHover = null; // cell index of a green single under the mouse on the board
+  let gridHover = null; // { cat, i }: a hint cell under the mouse on the board
   let pinTurn = 0;  // which single the next click picks
 
   const overlay = document.createElement('div');
@@ -595,7 +595,7 @@
     const r = cv ? cv.getBoundingClientRect() : null;
     const covered = r ? coverMap(cv, r) : null;
     const sig = [st.raw || st.error, r ? [r.left, r.top, r.width, scrollX, scrollY].join() : '',
-      JSON.stringify(opts.show), JSON.stringify(focus), JSON.stringify(pin), gridHover, covered ? covered.map(Number).join('') : ''].join('|');
+      JSON.stringify(opts.show), JSON.stringify(focus), JSON.stringify(pin), JSON.stringify(gridHover), covered ? covered.map(Number).join('') : ''].join('|');
     if (!force && sig === lastSig) return;
     lastSig = sig;
 
@@ -626,12 +626,19 @@
       }
     }
     // a green single hovered on the grid: show it with its reasoning, plus a short explanation
-    let hoverK = -1;
-    if (gridHover != null && !focus) {
-      hoverK = a.singles.findIndex((sg) => sg.i === gridHover && singleShown(sg.i));
-      if (hoverK < 0 || (covered && covered[gridHover])) { hoverK = -1; gridHover = null; }
+    let hoverK = -1, hoverF = null;
+    if (gridHover && !focus) {
+      if (covered && covered[gridHover.i]) gridHover = null;
+      else if (gridHover.cat === 'single') {
+        hoverK = a.singles.findIndex((sg) => sg.i === gridHover.i && singleShown(sg.i));
+        if (hoverK >= 0) hoverF = { cat: 'single', k: hoverK };
+      } else if (opts.show[gridHover.cat]) {
+        const k = groups[gridHover.cat].findIndex((g) => g.cells.includes(gridHover.i));
+        if (k >= 0) hoverF = { cat: gridHover.cat, k };
+      }
+      if (!hoverF) gridHover = null;
     }
-    const F = focus || (hoverK >= 0 ? { cat: 'single', k: hoverK } : null) || (pinK >= 0 ? { cat: 'single', k: pinK } : null);
+    const F = focus || hoverF || (pinK >= 0 ? { cat: 'single', k: pinK } : null);
     renderPanel(last, null);
     renderPin(pinK >= 0 ? a.singles[pinK] : null);
 
@@ -841,9 +848,14 @@
       moveQueued = false;
       if (busy || !last) return;
       const i = cellAt(lastXY[0], lastXY[1]);
-      const hit = i != null && singleShown(i) && last.singles.some((sg) => sg.i === i) && cells[i].style.visibility !== 'hidden'
-        && !(e.target && e.target.closest && e.target.closest('.sdkh-panel')) ? i : null;
-      if (hit !== gridHover) { gridHover = hit; render(true); }
+      let hit = null;
+      if (i != null && cells[i].style.visibility !== 'hidden' && !(e.target && e.target.closest && e.target.closest('.sdkh-panel'))) {
+        if (singleShown(i) && last.singles.some((sg) => sg.i === i)) hit = { cat: 'single', i };
+        else for (const cat of ['subsets', 'pointing']) {
+          if (opts.show[cat] && last.groups[cat].some((g) => g.cells.includes(i))) { hit = { cat, i }; break; }
+        }
+      }
+      if (JSON.stringify(hit) !== JSON.stringify(gridHover)) { gridHover = hit; render(true); }
     });
   }, { passive: true, capture: true });
   document.addEventListener('mouseleave', () => { if (gridHover != null) { gridHover = null; render(true); } });
@@ -917,23 +929,7 @@
       el.querySelector('.sdkh-count').textContent = String(counts[c.id]);
       el.classList.toggle('sdkh-has', counts[c.id] > 0);
       el.classList.toggle('sdkh-off', !opts.show[c.id]);
-      let html = '';
-      if (opts.show[c.id]) {
-        if (c.id === 'single') {
-          html = res.singles.map((sg, k) => {
-            const why = sg.kind === 'naked' ? 'only digit here' : `only ${sg.d} in ${sg.unit}`;
-            return `<div class="sdkh-item" data-cat="single" data-k="${k}">
-              <i class="sdkh-dot sdkh-green"></i><b>${cellName(sg.i)} → ${sg.d}</b><span>${why}</span>${stepTag(sg.step)}</div>`;
-          }).join('');
-        } else {
-          html = res.groups[c.id].map((g, k) => {
-            const n = [...g.elims.values()].reduce((s2, ds) => s2 + ds.length, 0);
-            return `<div class="sdkh-item" data-cat="${c.id}" data-k="${k}">
-              <i class="sdkh-dot" style="background:${g.color}"></i><b>${KIND_LABEL[g.kind]} ${g.digits.join('·')}</b>
-              <span>${g.units.join(' + ')}</span>${g.step > 1 ? stepTag(g.step) : `<em>−${n}</em>`}</div>`;
-          }).join('');
-        }
-      }
+      const html = '';   // hints are shown on the grid only; the panel keeps the counts
       setItems(c.id, html);
     }
   }
@@ -978,7 +974,7 @@
     saveOpts(); syncUi(); render(true);
   };
 
-  // Hover: an entry shows only that hint; a category title shows only that category.
+  // Hover a category title to see only that category on the grid.
   const cats = panel.querySelector('.sdkh-cats');
   cats.addEventListener('mouseover', (e) => {
     const it = e.target.closest('.sdkh-item');

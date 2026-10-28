@@ -11,8 +11,8 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 - **Just the counts.** The panel shows how many hints of each kind exist right now. Nothing is drawn on the grid until you open a category.
 - **One technique.** Click a category to see its hints, drawn faintly on the grid. It stays on until you click it again, so you can move to the grid and hover its hints one by one.
 - **One hint.** **☝ ONE single** shows a single next move, easiest first, and keeps it until you fill the cell.
-- **The reasoning.** Hover any hint to see the earlier hints it relies on and the notes they erase — so next time you can spot it yourself.
-- **Why it's a single — drawn on the grid.** Hover a green single (on the grid or in the list). Blue circles mark the placed digits that rule out the other options; light shading shows where to look; for “only place” singles, a grey × marks every other cell of that row, column or box. Red appears only when an earlier hint was needed: what it erased, and its cells outlined with its digits.
+- **The reasoning.** With a category on, hover one of its hints on the grid to see it in full, with the earlier hints it relies on and the notes they erase — so next time you can spot it yourself.
+- **Why it's a single — drawn on the grid.** Hover a green single on the grid. Blue circles mark the placed digits that rule out the other options; light shading shows where to look; for “only place” singles, a grey × marks every other cell of that row, column or box. Red appears only when an earlier hint was needed: what it erased, and its cells outlined with its digits.
 
 ![Reasoning](store/screenshot-2-reasoning.png)
 

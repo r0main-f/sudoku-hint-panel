@@ -17,7 +17,7 @@ APPRENEZ À VOTRE NIVEAU
 • Juste les compteurs : le panneau indique combien de choix uniques, paires et triplets et « pointing » existent en ce moment. Rien n'est dessiné sur la grille tant que vous n'ouvrez pas une catégorie.
 • Une technique : ouvrez une catégorie pour voir ses indices, discrètement, sur la grille.
 • Un indice : « ☝ ONE single » montre un seul prochain coup, le plus simple d'abord, et le garde affiché jusqu'à ce que vous remplissiez la case.
-• Le raisonnement : survolez un indice pour voir les indices précédents dont il dépend et les notes qu'ils permettent d'effacer — pour le trouver vous-même la prochaine fois.
+• Le raisonnement : avec une catégorie activée, survolez un de ses indices sur la grille pour le voir en entier, avec les indices précédents dont il dépend — pour le trouver vous-même la prochaine fois.
 • Pourquoi c'est un choix unique, dessiné sur la grille : survolez une case verte — des cercles bleus montrent les chiffres qui excluent le reste, des × gris les cases impossibles, le rouge seulement quand un indice précédent a été nécessaire.
 
 TECHNIQUES

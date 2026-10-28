@@ -651,14 +651,16 @@
       });
     }
 
+    const explaining = !!(F && F.cat === 'single' && F.k != null && (focus || hoverK >= 0) && a.singles[F.k]);
     const visible = (cat, k) => {
+      // explaining one single: the other active singles stay on the grid, other hints step back
+      if (explaining) return cat === 'single' && (k === F.k || singleShown(a.singles[k].i));
       if (F) return F.cat === cat && (F.k == null || F.k === k);
       return opts.show[cat];
     };
     const strong = (cat, k) => !!(F && F.cat === cat && (F.k === k || F.k == null));
 
     // Hovering one hint also shows, in full, the earlier hints it relies on.
-    const explaining = !!(F && F.cat === 'single' && F.k != null && (focus || hoverK >= 0) && a.singles[F.k]);
     const depSet = new Set();
     if (F && F.k != null && !explaining) {
       const item = F.cat === 'single' ? a.singles[F.k] : groups[F.cat][F.k];
@@ -774,7 +776,9 @@
       cells[i].appendChild(x);
     };
     const blockerIn = (unitName, d) => unitOf(unitName).cells.find((j) => st.grid[j] === d);
-    const shade = (u, except) => u.cells.forEach((j) => { if (j !== except) cells[j].classList.add('sdkh-unit'); });
+    const shade = (u, except) => u.cells.forEach((j) => {
+      if (j !== except && !cells[j].classList.contains('sdkh-single')) cells[j].classList.add('sdkh-unit');   // other singles keep their green
+    });
 
     if (sg.kind === 'naked') {
       // the cell's row, column and box hold all the other digits

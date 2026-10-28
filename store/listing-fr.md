@@ -18,7 +18,7 @@ APPRENEZ À VOTRE NIVEAU
 • Une technique : ouvrez une catégorie pour voir ses indices, discrètement, sur la grille.
 • Un indice : « ☝ ONE single » montre un seul prochain coup, le plus simple d'abord, et le garde affiché jusqu'à ce que vous remplissiez la case.
 • Le raisonnement : survolez un indice pour voir les indices précédents dont il dépend et les notes qu'ils permettent d'effacer — pour le trouver vous-même la prochaine fois.
-• Pourquoi c'est un choix unique, dessiné sur la grille : survolez une case verte et chaque autre option est barrée, avec un trait depuis le chiffre qui l'exclut (bleu ligne, orange colonne, violet carré).
+• Pourquoi c'est un choix unique, dessiné sur la grille : survolez une case verte — des cercles bleus montrent les chiffres qui excluent le reste, des × gris les cases impossibles, le rouge seulement quand un indice précédent a été nécessaire.
 
 TECHNIQUES
 • Choix unique — une case où un seul chiffre est possible, ou un chiffre qui n'a plus qu'une place dans une ligne, une colonne ou un carré.

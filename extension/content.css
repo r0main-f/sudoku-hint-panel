@@ -154,7 +154,7 @@
 .sdkh-dead .sdkh-pill { color: #c62828; }
 
 /* note-position marks */
-.sdkh-key, .sdkh-elim, .sdkh-elim-soft, .sdkh-one {
+.sdkh-key, .sdkh-elim, .sdkh-elim-soft, .sdkh-one, .sdkh-hintdigit {
   position: absolute;
   z-index: 0;
   width: 30%;
@@ -212,25 +212,24 @@
 }
 
 /* ------------------------------------------------------------ "why is it a single?" on the grid */
-.sdkh-rays { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-.sdkh-rays line { stroke-width: 3; stroke-linecap: round; opacity: .6; vector-effect: non-scaling-stroke; }
-/* the placed digit that blocks */
+/* a placed digit that rules something out: one blue circle */
 .sdkh-ring {
-  position: absolute; left: 50%; top: 50%; width: 74%; height: 74%;
+  position: absolute; left: 50%; top: 50%; width: 72%; height: 72%;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  box-shadow: 0 0 0 2.5px var(--c);
-  opacity: .85;
+  box-shadow: 0 0 0 2.5px #2f7be0;
 }
-/* a digit ruled out here, in the color of what rules it out */
-.sdkh-x {
-  position: absolute; z-index: 0; width: 30%; height: 30%;
+/* another cell of the unit that can't take the digit */
+.sdkh-no {
+  position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font: 700 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-style: normal; color: var(--c);
-  text-decoration: line-through; text-decoration-thickness: 2px;
+  font: 300 34px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-style: normal; color: rgba(110, 120, 140, .55);
 }
-.sdkh-x::before { content: ""; position: absolute; inset: 6%; z-index: -1; border-radius: 50%; background: rgba(255, 255, 255, .92); }
+.sdkh-no.sdkh-no-hint { color: rgba(229, 57, 53, .75); }
+/* the cells of an earlier hint that was needed, with its digits */
+.sdkh-hintdigit { color: #d32f2f; font-size: 12px; }
+.sdkh-overlay > .sdkh-hintcell { box-shadow: inset 0 0 0 2px rgba(229, 57, 53, .55); }
 /* one-line label above the board, over the single's column */
 .sdkh-chip {
   position: absolute; top: 0; transform: translate(-50%, calc(-100% - 6px));

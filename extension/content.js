@@ -667,9 +667,12 @@
     };
     const strong = (cat, k) => !!(F && F.cat === cat && (F.k === k || F.k == null));
 
-    // Hovering one hint also shows, in full, the earlier hints it relies on.
+    // A hovered pair / triple / pointing group is drawn with the same simple
+    // vocabulary as singles (see drawGroupFocus). Otherwise (e.g. the pinned
+    // ONE single) the earlier hints it relies on are shown in full.
+    const groupFocus = F && F.k != null && F.cat !== 'single' ? groups[F.cat][F.k] : null;
     const depSet = new Set();
-    if (F && F.k != null && !explaining) {
+    if (F && F.k != null && !explaining && !groupFocus) {
       const item = F.cat === 'single' ? a.singles[F.k] : groups[F.cat][F.k];
       const stack = [...((item && item.deps) || [])];
       while (stack.length) {
@@ -704,6 +707,23 @@
         if (!visible(cat, k) || depSet.has(a.hints.indexOf(g))) return;
         drawGroup(g, strong(cat, k) ? 'strong' : 'soft');
       });
+    }
+    if (groupFocus) {
+      // where it applies: its row / column / box, lightly shaded
+      const names = groupFocus.units.flatMap((n) => n.split(' → '));
+      for (const n of names) {
+        const u = unitOf(n);
+        if (u) u.cells.forEach((j) => { if (!groupFocus.cells.includes(j)) cells[j].classList.add('sdkh-unit'); });
+      }
+      // earlier hints it needed: their cells outlined in red, with their digits
+      for (const h of groupFocus.deps || []) {
+        const hint = a.hints[h];
+        for (const i of hint.cells) {
+          if (groupFocus.cells.includes(i)) continue;
+          cells[i].classList.add('sdkh-hintcell');
+          hint.digits.forEach((d) => mark(cells[i], 'sdkh-hintdigit', d));
+        }
+      }
     }
 
     // single options: the only green on the board

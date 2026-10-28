@@ -211,25 +211,40 @@
   box-shadow: 0 0 0 1.5px #e53935;
 }
 
-/* ------------------------------------------------------------ "why is it a single?" card */
-.sdkh-tip {
-  position: fixed;
-  z-index: 2147483001;
-  max-width: 310px;
-  padding: 9px 11px 9px;
-  background: rgba(255, 255, 255, .98);
-  border: 1px solid #9fd3b0;
-  border-radius: 10px;
-  box-shadow: 0 8px 26px rgba(30, 50, 100, .2);
-  font: 12px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1e2a44;
-  pointer-events: none;
+/* ------------------------------------------------------------ "why is it a single?" on the grid */
+.sdkh-rays { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.sdkh-rays line { stroke-width: 3; stroke-linecap: round; opacity: .6; vector-effect: non-scaling-stroke; }
+/* the placed digit that blocks */
+.sdkh-ring {
+  position: absolute; left: 50%; top: 50%; width: 74%; height: 74%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2.5px var(--c);
+  opacity: .85;
 }
-.sdkh-tip[hidden] { display: none; }
-.sdkh-tip-h { display: flex; align-items: center; gap: 6px; font-size: 13px; }
-.sdkh-tip-h .sdkh-step { margin-left: auto; }
-.sdkh-tip-sub { margin: 2px 0 5px 15px; color: #1f7a3f; font-weight: 600; }
-.sdkh-tip ul { margin: 0 0 5px; padding-left: 15px; }
-.sdkh-tip li { margin: 1px 0; }
-.sdkh-tip li b { font-weight: 600; }
-.sdkh-tip-end { color: #6b7590; }
+/* a digit ruled out here, in the color of what rules it out */
+.sdkh-x {
+  position: absolute; z-index: 0; width: 30%; height: 30%;
+  display: flex; align-items: center; justify-content: center;
+  font: 700 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-style: normal; color: var(--c);
+  text-decoration: line-through; text-decoration-thickness: 2px;
+}
+.sdkh-x::before { content: ""; position: absolute; inset: 6%; z-index: -1; border-radius: 50%; background: rgba(255, 255, 255, .92); }
+/* one-line label above the board, over the single's column */
+.sdkh-chip {
+  position: absolute; top: 0; transform: translate(-50%, calc(-100% - 6px));
+  padding: 3px 9px; border-radius: 999px; white-space: nowrap;
+  background: #2e9d57; color: #fff;
+  font: 600 12px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  box-shadow: 0 3px 10px rgba(30, 80, 50, .25);
+}
+.sdkh-chip[data-edge="left"] { transform: translate(0, calc(-100% - 6px)); }
+.sdkh-chip[data-edge="right"] { transform: translate(-100%, calc(-100% - 6px)); }
+.sdkh-chip::after {   /* small pointer down to the column */
+  content: ""; position: absolute; left: 50%; bottom: -5px; margin-left: -5px;
+  border: 5px solid transparent; border-bottom: 0; border-top-color: #2e9d57;
+}
+.sdkh-chip[data-edge="left"]::after { left: 18px; }
+.sdkh-chip[data-edge="right"]::after { left: auto; right: 13px; }
+.sdkh-chip[hidden] { display: none; }

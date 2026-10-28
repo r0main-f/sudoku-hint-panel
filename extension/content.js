@@ -601,7 +601,6 @@
 
     if (st.error) {
       overlay.style.display = 'none';
-      hideTip();
       last = null;
       renderPanel(null, st.error);
       return;
@@ -633,8 +632,6 @@
       if (hoverK < 0 || (covered && covered[gridHover])) { hoverK = -1; gridHover = null; }
     }
     const F = focus || (hoverK >= 0 ? { cat: 'single', k: hoverK } : null) || (pinK >= 0 ? { cat: 'single', k: pinK } : null);
-    if (hoverK >= 0 && r) showTip(a.singles[hoverK], st, a, cellBox(gridHover, r, boardGeometry(cv)));
-    else hideTip();
     renderPanel(last, null);
     renderPin(pinK >= 0 ? a.singles[pinK] : null);
 
@@ -713,6 +710,11 @@
       }
       mark(c, 'sdkh-one', sg.d);   // at the digit's own note position, like a pencil note
     });
+    // hovering one single (on the grid or in the list): draw why it is a single
+    clearExplain();
+    if (F && F.cat === 'single' && F.k != null && (focus || hoverK >= 0) && a.singles[F.k]) {
+      drawExplain(a.singles[F.k], st, a, boardGeometry(cv));
+    }
     if (!F) {
       for (const i of a.dead) {
         cells[i].classList.add('sdkh-dead');
@@ -722,16 +724,11 @@
 
     // nothing is drawn over parts of the grid that something else covers
     covered.forEach((hid, i) => { if (hid) cells[i].style.visibility = 'hidden'; });
+    if (covered.some(Boolean)) clearExplain();
     if (covered.every(Boolean)) overlay.style.display = 'none';
   }
 
-  // ---------------------------------------------------------------- "why is it a single?"
-  const tip = document.createElement('div');
-  tip.className = 'sdkh-tip';
-  tip.hidden = true;
-  document.body.appendChild(tip);
-  function hideTip() { tip.hidden = true; }
-
+  // ---------------------------------------------------------------- "why is it a single?" (drawn on the grid)
   const unitOf = (name) => UNITS.find((u) => u.name === name);
   const unitsOfCell = (i) => [UNITS[Math.floor(i / 9)], UNITS[9 + (i % 9)], UNITS[18 + Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3)]];
   const hintLabel = (g) => `${KIND_LABEL[g.kind]} ${g.digits.join('·')} (${g.units.join(' + ')})`;
@@ -749,50 +746,76 @@
     return { key: '?', text: 'excluded' };
   }
 
-  function explainSingle(sg, st, a) {
-    const lines = [];
-    if (sg.kind === 'naked') {
-      // group the 8 other digits by what rules them out
-      const units = new Map(), others = new Map();
-      for (let d = 1; d <= 9; d++) {
-        if (d === sg.d) continue;
-        const w = whyNot(sg.i, d, st, a);
-        const into = /^(row|column|box) /.test(w.key) ? units : others;
-        if (!into.has(w.key)) into.set(w.key, { text: w.text, ds: [] });
-        into.get(w.key).ds.push(d);
-      }
-      // placed digits first, in row / column / box order, then erasures
-      for (const u of unitsOfCell(sg.i)) if (units.has(u.name)) lines.push(`<b>${cap(u.name)}</b> has ${units.get(u.name).ds.join(' ')}`);
-      for (const g of others.values()) lines.push(`<b>${g.ds.join(', ')}</b> — ${g.text}`);
-      return { title: `${cellName(sg.i)} → ${sg.d}`, sub: 'Only digit left in this cell', lines, end: `Every other digit is ruled out, so it must be ${sg.d}.` };
-    }
-    // hidden single: every other empty cell of the unit is ruled out for this digit
-    const u = unitOf(sg.unit);
-    const groups = new Map();
-    for (const j of u.cells) {
-      if (j === sg.i || st.grid[j]) continue;
-      const w = whyNot(j, sg.d, st, a, u.name);
-      if (!groups.has(w.key)) groups.set(w.key, { text: w.text, cells: [] });
-      groups.get(w.key).cells.push(cellName(j));
-    }
-    for (const g of groups.values()) lines.push(`<b>${g.cells.join(', ')}</b> — ${g.text}`);
-    return { title: `${cellName(sg.i)} → ${sg.d}`, sub: `Only place for ${sg.d} in ${sg.unit}`, lines, end: `No other cell of ${sg.unit} can take ${sg.d}.` };
-  }
+  // Rays, rings and crossed-out digits that show on the board why a single is a single.
+  const RAY = { row: '#2f7be0', column: '#e2871b', box: '#9b4fc4' };
+  const NS = 'http://www.w3.org/2000/svg';
+  const rays = document.createElementNS(NS, 'svg');
+  rays.setAttribute('class', 'sdkh-rays');
+  rays.setAttribute('viewBox', '0 0 1000 1000');
+  rays.setAttribute('preserveAspectRatio', 'none');
+  overlay.insertBefore(rays, overlay.firstChild);   // under the cells' marks
+  const chip = document.createElement('div');
+  chip.className = 'sdkh-chip';
+  overlay.appendChild(chip);
+  function clearExplain() { rays.textContent = ''; chip.hidden = true; }
 
-  function showTip(sg, st, a, box) {
-    const e = explainSingle(sg, st, a);
-    tip.innerHTML = `<div class="sdkh-tip-h"><i class="sdkh-dot sdkh-green"></i><b>${e.title}</b>${sg.step > 1 ? `<small class="sdkh-step">step ${sg.step}</small>` : ''}</div>
-      <div class="sdkh-tip-sub">${e.sub}</div>
-      <ul>${e.lines.map((l) => `<li>${l}</li>`).join('')}</ul>
-      <div class="sdkh-tip-end">${e.end}${sg.step > 1 ? ' The hints it relies on are shown on the grid.' : ''}</div>`;
-    tip.hidden = false;
-    const tw = tip.offsetWidth, th = tip.offsetHeight, gap = 10;
-    let x = box.x + box.w + gap;
-    if (x + tw > innerWidth - 8) x = box.x - tw - gap;          // not enough room on the right
-    x = Math.max(8, x);
-    const y = Math.min(Math.max(8, box.y + box.h / 2 - th / 2), innerHeight - th - 8);
-    tip.style.left = x + 'px';
-    tip.style.top = y + 'px';
+  function drawExplain(sg, st, a, g) {
+    clearExplain();
+    const center = (i) => {
+      const [x0, x1] = g.cols[i % 9], [y0, y1] = g.rows[Math.floor(i / 9)];
+      return [(x0 + x1) * 500, (y0 + y1) * 500];
+    };
+    const slot = (i, d) => {   // where digit d's pencil note sits in cell i
+      const [x0, x1] = g.cols[i % 9], [y0, y1] = g.rows[Math.floor(i / 9)];
+      return [(x0 + NOTE_X[(d - 1) % 3] * (x1 - x0)) * 1000, (y0 + NOTE_Y[Math.floor((d - 1) / 3)] * (y1 - y0)) * 1000];
+    };
+    const blockerIn = (unitName, d) => unitOf(unitName).cells.find((j) => st.grid[j] === d);
+    const ringed = new Set();
+    const ray = (from, to, d, color) => {
+      const [x1, y1] = center(from), [x2, y2] = slot(to, d);
+      const len = Math.hypot(x2 - x1, y2 - y1) || 1, ux = (x2 - x1) / len, uy = (y2 - y1) / len;
+      const a0 = 44, a1 = 17;   // start outside the blocker's ring, end at the crossed-out digit
+      const line = document.createElementNS(NS, 'line');
+      line.setAttribute('x1', x1 + ux * a0); line.setAttribute('y1', y1 + uy * a0);
+      line.setAttribute('x2', x2 - ux * a1); line.setAttribute('y2', y2 - uy * a1);
+      line.setAttribute('stroke', color);
+      rays.appendChild(line);
+      if (!ringed.has(from)) {   // ring the placed digit that blocks
+        ringed.add(from);
+        const r = document.createElement('i');
+        r.className = 'sdkh-ring';
+        r.style.setProperty('--c', color);
+        cells[from].appendChild(r);
+      }
+    };
+    // one reason, drawn: a ray from the blocking digit, or the red ring of an erasure
+    const show = (cell, d, skipUnit) => {
+      const w = whyNot(cell, d, st, a, skipUnit);
+      if (/^(row|column|box) /.test(w.key)) {
+        const color = RAY[w.key.split(' ')[0]];
+        ray(blockerIn(w.key, d), cell, d, color);
+        mark(cells[cell], 'sdkh-x', d, color);
+      } else if (w.key.startsWith('h')) {
+        mark(cells[cell], 'sdkh-elim', d);          // the hint itself is drawn as a dependency
+      } else {
+        mark(cells[cell], 'sdkh-x', d, '#8a93a8');  // not in the player's notes
+      }
+    };
+
+    if (sg.kind === 'naked') {
+      for (const u of unitsOfCell(sg.i)) u.cells.forEach((j) => { if (j !== sg.i) cells[j].classList.add('sdkh-unit'); });
+      for (let d = 1; d <= 9; d++) if (d !== sg.d) show(sg.i, d);
+      chip.textContent = `only ${sg.d} fits here`;
+    } else {
+      const u = unitOf(sg.unit);
+      for (const j of u.cells) if (j !== sg.i && !st.grid[j]) show(j, sg.d, u.name);
+      chip.textContent = `only place for ${sg.d} in ${sg.unit}`;
+    }
+    // label just outside the board, above the single's column, so it never hides the grid
+    const [x0, x1] = g.cols[sg.i % 9], c = sg.i % 9;
+    chip.hidden = false;
+    chip.style.left = (c === 0 ? x0 : c === 8 ? x1 : (x0 + x1) / 2) * 100 + '%';
+    chip.dataset.edge = c === 0 ? 'left' : c === 8 ? 'right' : '';
   }
 
   // Is this cell's green single drawn on the grid right now?

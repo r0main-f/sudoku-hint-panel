@@ -12,7 +12,7 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 - **One technique.** Click a category to see its hints, drawn faintly on the grid.
 - **One hint.** **☝ ONE single** shows a single next move, easiest first, and keeps it until you fill the cell.
 - **The reasoning.** Hover any hint to see the earlier hints it relies on and the notes they erase — so next time you can spot it yourself.
-- **Why it's a single.** Hover a green single on the grid: a small card explains it — which row, column or box rules out each other digit (or each other cell), and which earlier hint erased what.
+- **Why it's a single — drawn on the grid.** Hover a green single (on the grid or in the list): every other option is crossed out on the board, with a line from the placed digit that rules it out — blue for its row, orange for its column, purple for its box — and digits erased by earlier hints circled in red.
 
 ![Reasoning](store/screenshot-2-reasoning.png)
 

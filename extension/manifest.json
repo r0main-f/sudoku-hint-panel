@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Sudoku Hint Panel",
   "short_name": "Sudoku Hints",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "A light hint panel for sudoku.com: candidates, single options, pairs, triples and pointing, shown step by step.",
   "minimum_chrome_version": "111",
   "icons": {

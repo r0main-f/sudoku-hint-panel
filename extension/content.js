@@ -898,7 +898,7 @@
 
   const KIND_LABEL = { pair: 'Pair', triple: 'Triple', pointing: 'Pointing' };
   // step 1 = visible on the board as it is; step n = needs the erasures of earlier hints
-  const stepTag = (n) => (n > 1 ? `<small class="sdkh-step" title="Relies on earlier hints — hover to see them">step ${n}</small>` : '<small></small>');
+  const stepTag = (n) => (n > 1 ? `<small class="sdkh-step">step ${n}</small>` : '<small></small>');
   const lastItems = {};
   function renderPanel(res, error) {
     if (!res) {
@@ -922,13 +922,13 @@
         if (c.id === 'single') {
           html = res.singles.map((sg, k) => {
             const why = sg.kind === 'naked' ? 'only digit here' : `only ${sg.d} in ${sg.unit}`;
-            return `<div class="sdkh-item" data-cat="single" data-k="${k}" title="${cellName(sg.i)}: ${why}${sg.step > 1 ? ' — once the earlier hints are applied (hover to see them)' : ''}">
+            return `<div class="sdkh-item" data-cat="single" data-k="${k}">
               <i class="sdkh-dot sdkh-green"></i><b>${cellName(sg.i)} → ${sg.d}</b><span>${why}</span>${stepTag(sg.step)}</div>`;
           }).join('');
         } else {
           html = res.groups[c.id].map((g, k) => {
             const n = [...g.elims.values()].reduce((s2, ds) => s2 + ds.length, 0);
-            return `<div class="sdkh-item" data-cat="${c.id}" data-k="${k}" title="${g.cells.map(cellName).join(', ')} — erase ${g.digits.join('/')} from ${[...g.elims.keys()].map(cellName).join(', ')}">
+            return `<div class="sdkh-item" data-cat="${c.id}" data-k="${k}">
               <i class="sdkh-dot" style="background:${g.color}"></i><b>${KIND_LABEL[g.kind]} ${g.digits.join('·')}</b>
               <span>${g.units.join(' + ')}</span>${g.step > 1 ? stepTag(g.step) : `<em>−${n}</em>`}</div>`;
           }).join('');

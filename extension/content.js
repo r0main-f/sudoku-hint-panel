@@ -275,6 +275,7 @@
         }
         g.deps = depsOf(pairs);
         g.step = stepOf(g.deps);
+        g.round = round;
       }
       let progressed = false;
       for (const g of found) {
@@ -690,7 +691,7 @@
         const depth = prev ? prev.split('inset').length - 1 : 0; // stacked groups: nested thin lines
         const w = mode === 'strong' ? 3 : mode === 'dep' ? 2 : 1.5;
         c.style.boxShadow = prev + `inset 0 0 0 ${w + depth * 2.5}px ${g.color}${mode === 'soft' ? '8c' : ''}`;
-        if (mode !== 'soft') g.digits.forEach((d) => mark(c, 'sdkh-key', d, g.color));
+        if (mode !== 'soft') hintDigitsIn(g, i, a).forEach((d) => mark(c, 'sdkh-key', d, g.color));
         if (mode === 'strong') c.style.background = g.color + '22';
       }
       for (const [j, ds] of g.elims) {
@@ -721,7 +722,7 @@
         for (const i of hint.cells) {
           if (groupFocus.cells.includes(i)) continue;
           cells[i].classList.add('sdkh-hintcell');
-          hint.digits.forEach((d) => mark(cells[i], 'sdkh-hintdigit', d));
+          hintDigitsIn(hint, i, a).forEach((d) => mark(cells[i], 'sdkh-hintdigit', d));
         }
       }
     }
@@ -758,6 +759,16 @@
 
   // ---------------------------------------------------------------- "why is it a single?" (drawn on the grid)
   const unitOf = (name) => UNITS.find((u) => u.name === name);
+  // The digits of hint g that are actually possible in cell i when the hint applies.
+  // A triple 3·4·7 means its cells hold 3, 4 and 7 between them, not that each
+  // cell can take all three (one of them may see a placed 4, for instance).
+  function hintDigitsIn(g, i, a) {
+    return g.digits.filter((d) => {
+      if (!a.cand[i] || !a.cand[i].has(d)) return false;
+      const by = a.removedBy.get(i + ':' + d);
+      return by == null || a.hints[by].round >= g.round;   // not erased in an earlier pass
+    });
+  }
   const unitsOfCell = (i) => [UNITS[Math.floor(i / 9)], UNITS[9 + (i % 9)], UNITS[18 + Math.floor(i / 27) * 3 + Math.floor((i % 9) / 3)]];
   const hintLabel = (g) => `${KIND_LABEL[g.kind]} ${g.digits.join('·')} (${g.units.join(' + ')})`;
   const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);
@@ -835,7 +846,7 @@
       const hint = a.hints[h];
       for (const i of hint.cells) {
         cells[i].classList.add('sdkh-hintcell');
-        hint.digits.forEach((d) => mark(cells[i], 'sdkh-hintdigit', d));   // what the hint is about, e.g. 3·4·7
+        hintDigitsIn(hint, i, a).forEach((d) => mark(cells[i], 'sdkh-hintdigit', d));   // what the hint is about, e.g. 3·4·7
       }
     }
 

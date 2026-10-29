@@ -187,6 +187,11 @@
   border-radius: 50%;
   background: var(--c);
 }
+/* pair / triple / pointing cells: one frame per group */
+.sdkh-frame { position: absolute; box-sizing: border-box; border-radius: 4px; pointer-events: none; }
+.sdkh-frame-soft { border: 1.5px solid color-mix(in srgb, var(--c) 60%, transparent); }
+.sdkh-frame-dep { border: 2px solid var(--c); }
+.sdkh-frame-strong { border: 2.5px solid var(--c); background: color-mix(in srgb, var(--c) 7%, transparent); }
 /* erasable note — faint by default: just a thin red strike over the note */
 .sdkh-elim-soft { color: transparent; }
 .sdkh-elim-soft::after {

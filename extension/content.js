@@ -536,7 +536,7 @@
   } catch (e) { /* ignore */ }
   const saveOpts = () => { try { localStorage.setItem('sdkh_opts', JSON.stringify(opts)); } catch (e) { /* ignore */ } };
 
-  const PALETTE = ['#2f6fdc', '#8e44ad', '#e07b1f', '#5c6bc0', '#8d6e63', '#c9a227']; // no green (singles) and no red (erase)
+  const PALETTE = ['#1565c0', '#8e24aa', '#ef6c00', '#00838f', '#6d4c41', '#37474f']; // no green (singles) and no red (erase)
   const CATS = [
     { id: 'single', label: 'Single option', key: 'H' },
     { id: 'subsets', label: 'Pairs & triples', key: 'P' },
@@ -687,12 +687,15 @@
     const drawGroup = (g, mode) => {  // mode: 'soft' | 'dep' | 'strong'
       for (const i of g.cells) {
         const c = cells[i];
-        const prev = c.style.boxShadow ? c.style.boxShadow + ', ' : '';
-        const depth = prev ? prev.split('inset').length - 1 : 0; // stacked groups: nested thin lines
-        const w = mode === 'strong' ? 3 : mode === 'dep' ? 2 : 1.5;
-        c.style.boxShadow = prev + `inset 0 0 0 ${w + depth * 2.5}px ${g.color}${mode === 'soft' ? '8c' : ''}`;
+        // one crisp frame per group, inset from the cell edge so neighbouring
+        // cells stay separate; a cell in several groups gets nested frames with a gap
+        const depth = c.querySelectorAll('.sdkh-frame').length;
+        const f = document.createElement('b');
+        f.className = 'sdkh-frame sdkh-frame-' + mode;
+        f.style.setProperty('--c', g.color);
+        f.style.inset = 2 + depth * 4 + 'px';
+        c.insertBefore(f, c.firstChild);   // under the digit marks
         if (mode !== 'soft') hintDigitsIn(g, i, a).forEach((d) => mark(c, 'sdkh-key', d, g.color));
-        if (mode === 'strong') c.style.background = g.color + '22';
       }
       for (const [j, ds] of g.elims) {
         ds.forEach((d) => {

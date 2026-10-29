@@ -295,28 +295,36 @@
     // Single options on the reduced candidates:
     //  naked  = a cell with one possible digit;
     //  hidden = a digit with one possible cell in a row, column or box.
-    const singles = [], dead = [], taken = new Set();
+    // A cell can be a single for several reasons; keep the simplest one:
+    // fewest earlier hints needed, then fewest marks to draw (a hidden single
+    // shows one × per other empty cell of its unit, a naked one rules out 8 digits).
+    const best = new Map(), dead = [];
+    const offer = (sg) => {
+      const cur = best.get(sg.i);
+      const better = !cur || (sg.step - cur.step || sg.deps.length - cur.deps.length || sg.cost - cur.cost) < 0;
+      if (better) best.set(sg.i, sg);
+    };
     for (let i = 0; i < 81; i++) {
       if (st.grid[i]) continue;
       if (cand0[i].size === 0) { dead.push(i); continue; }
       if (cand[i].size === 1) {
         const d = [...cand[i]][0];
         const deps = depsOf([1, 2, 3, 4, 5, 6, 7, 8, 9].map((x) => [i, x]));
-        singles.push({ i, d, kind: 'naked', unit: '', deps, step: stepOf(deps) });
-        taken.add(i);
+        offer({ i, d, kind: 'naked', unit: '', deps, step: stepOf(deps), cost: 8 });
       }
     }
     for (const u of UNITS) {
       for (let d = 1; d <= 9; d++) {
         if (u.cells.some((i) => st.grid[i] === d)) continue;
         const places = u.cells.filter((i) => cand[i] && cand[i].has(d));
-        if (places.length !== 1 || taken.has(places[0])) continue;
+        if (places.length !== 1) continue;
         const i = places[0];
         const deps = depsOf(u.cells.map((j) => [j, d]));
-        singles.push({ i, d, kind: 'hidden', unit: u.name, deps, step: stepOf(deps) });
-        taken.add(i);
+        const cost = u.cells.filter((j) => j !== i && !st.grid[j]).length;
+        offer({ i, d, kind: 'hidden', unit: u.name, deps, step: stepOf(deps), cost });
       }
     }
+    const singles = [...best.values()].map(({ cost, ...sg }) => sg);
     singles.sort((p, q) => p.step - q.step || p.i - q.i);
 
     // stable order for the lists: by step, then position

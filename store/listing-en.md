@@ -23,7 +23,7 @@ LEARN AT YOUR OWN LEVEL
 TECHNIQUES
 • Single option — a cell where only one digit fits, or a digit with only one place left in a row, column or box.
 • Pairs & triples — 2 cells sharing the same 2 candidates (or 3 sharing 3): those digits can be erased from the rest of the row, column or box.
-• Pointing — when a box's candidates for a digit all sit in one row or column, that digit can be erased from the rest of the line.
+• Pointing — when a box's candidates for a digit all sit in one row or column, that digit can be erased from the rest of the line; and the other way round, when a row's or column's candidates all sit in one box, from the rest of the box.
 • Chained hints — hints that only appear once earlier ones are applied are found too, tagged "step 2, step 3…".
 
 PRACTICAL TOOLS

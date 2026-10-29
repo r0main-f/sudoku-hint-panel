@@ -229,8 +229,28 @@
         }
       }
     }
+    // the other way round (sudoku.com also calls it "pointing"; aka claiming):
+    // all of a row's or column's candidates for a digit lie in one box → that
+    // digit can be erased from the rest of the box, outside the line.
+    for (let l = 0; l < 18; l++) {
+      const line = UNITS[l];
+      for (let d = 1; d <= 9; d++) {
+        const cs = line.cells.filter((i) => cand[i] && cand[i].has(d));
+        if (cs.length < 2) continue;
+        const b = boxOf(cs[0]);
+        if (!cs.every((i) => boxOf(i) === b)) continue;
+        const box = UNITS[18 + b];
+        const elims = new Map();
+        for (const j of box.cells) {
+          if (line.cells.includes(j) || !cand[j] || !cand[j].has(d)) continue;
+          elims.set(j, [d]);
+        }
+        if (elims.size) out.push({ kind: 'pointing', cells: cs, digits: [d], units: [`${line.name} → ${box.name}`], elims });
+      }
+    }
     return out;
   }
+  function boxOf(i) { return Math.floor(Math.floor(i / 9) / 3) * 3 + Math.floor((i % 9) / 3); }
 
   // Chained analysis. Every erasure a hint allows is applied to a working copy
   // of the candidates, then the search runs again, until nothing new appears.
@@ -267,9 +287,9 @@
       if (!found.length) break;
       for (const g of found) {         // deps from earlier rounds only
         let pairs;
-        if (g.kind === 'pointing') {   // the digit was erased from the box's other lines
-          const box = UNITS.find((u) => u.name === g.units[0].split(' → ')[0]);
-          pairs = box.cells.map((j) => [j, g.digits[0]]);
+        if (g.kind === 'pointing') {   // the digit was erased elsewhere in the source unit
+          const src = UNITS.find((u) => u.name === g.units[0].split(' → ')[0]);   // box, or line when claiming
+          pairs = src.cells.map((j) => [j, g.digits[0]]);
         } else {                       // the group's cells lost other candidates
           pairs = g.cells.flatMap((i) => [1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => [i, d]));
         }

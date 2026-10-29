@@ -23,7 +23,7 @@ APPRENEZ À VOTRE NIVEAU
 TECHNIQUES
 • Choix unique — une case où un seul chiffre est possible, ou un chiffre qui n'a plus qu'une place dans une ligne, une colonne ou un carré.
 • Paires et triplets — 2 cases partageant les 2 mêmes candidats (ou 3 en partageant 3) : ces chiffres s'effacent du reste de la ligne, colonne ou carré.
-• Pointing — quand les candidats d'un chiffre dans un carré sont tous sur une même ligne ou colonne, ce chiffre s'efface du reste de cette ligne.
+• Pointing — quand les candidats d'un chiffre dans un carré sont tous sur une même ligne ou colonne, ce chiffre s'efface du reste de cette ligne ; et inversement, quand ceux d'une ligne ou colonne sont tous dans un même carré, il s'efface du reste du carré.
 • Indices enchaînés — les indices qui n'apparaissent qu'après en avoir appliqué d'autres sont aussi trouvés, marqués « step 2, step 3… ».
 
 OUTILS PRATIQUES

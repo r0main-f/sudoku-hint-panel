@@ -14,7 +14,7 @@ Done: https://github.com/r0main-f/sudoku-hint-panel
 4. If asked, enable 2-Step Verification on the account, and declare your status: for a free hobby project you are normally a **non-trader**.
 
 ## 3. New item
-1. **Add new item** → upload `sudoku-hint-panel-3.6.0.zip` (the zip contains only the `extension/` files, manifest at its root).
+1. **Add new item** → upload `sudoku-hint-panel-3.6.1.zip` (the zip contains only the `extension/` files, manifest at its root).
 
 ## 4. Store listing tab
 - **Description:** paste the English description from `store/listing-en.md`. The summary comes from the manifest (`description`).

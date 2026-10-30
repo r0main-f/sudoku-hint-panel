@@ -35,7 +35,7 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 | ☝ ONE single | Alt+Shift+O | Shows one single option (easiest first); click again for another. |
 | Category titles | Alt+Shift+H / P / L | Show or hide singles / pairs & triples / pointing on the grid. |
 
-The panel can be dragged anywhere (double-click its title bar to reset it), updates live as you play, works on a brand-new grid before your first move, and never draws over a site pop-up.
+The panel can be dragged anywhere (double-click its title bar to reset it), updates live as you play, works on a brand-new grid before your first move, and never draws over a site pop-up. When no game is in play (finished, hidden behind a pop-up or an ad, or no board on the page) it shrinks to a faded title bar, with no messages or numbers, until a grid is back.
 
 ## Fair play
 

@@ -28,6 +28,10 @@
 }
 .sdkh-min { all: unset; cursor: pointer; padding: 0 4px; font-size: 16px; line-height: 1; }
 .sdkh-collapsed .sdkh-body { display: none; }
+/* no game in play: title bar only, faded */
+.sdkh-idle .sdkh-body { display: none; }
+.sdkh-idle { opacity: .55; }
+.sdkh-idle:hover { opacity: .85; }
 .sdkh-body { display: flex; flex-direction: column; gap: 8px; padding: 10px; }
 
 .sdkh-fair { padding: 8px 10px; border: 1px solid #f0d58a; border-radius: 8px; background: #fff8e1; font-size: 12px; color: #5d4a12; }

@@ -670,6 +670,19 @@
     if (!force && sig === lastSig) return;
     lastSig = sig;
 
+    // No game in play (finished, behind a pop-up or an ad, scrolled away, or no
+    // board on this page): the panel goes quiet — title bar only, no message,
+    // no numbers — until a grid is back on screen.
+    const hiddenCells = covered ? covered.filter(Boolean).length : 81;
+    const idle = !r || r.width < 60 || hiddenCells > 40 || (!st.error && st.grid.every(Boolean)) || /^No .* game found/.test(st.error || '');
+    panel.classList.toggle('sdkh-idle', idle);
+    if (idle) {
+      overlay.style.display = 'none';
+      clearExplain();
+      last = null;
+      return;
+    }
+
     if (st.error) {
       overlay.style.display = 'none';
       last = null;

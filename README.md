@@ -56,7 +56,7 @@ sudoku.com draws its grid on a canvas, but keeps the live game (digits, notes, m
 - `content.js` reads that state, computes candidates and the techniques above (chained until nothing new appears), and draws a light overlay and the panel;
 - the action buttons play through the same inputs a player uses — a click on the cell, the pencil toggle, a digit key — so everything stays in the game's undo history.
 
-Notes you take are used once every empty cell has some (for example after **Candidates**); before that, hints come from the placed digits only, so a few reminder notes never cause a wrong hint.
+Notes you take are used once every empty cell has some (for example after **Candidates**); before that, hints come from the placed digits only, so a few reminder notes never cause a wrong hint. If a note was erased by mistake (it rules out the digit that really goes there), the panel says so, shows where when you hover the warning, and ignores your notes until it's fixed — so a slip never turns into a wrong hint. When an explanation relies on a note you erased yourself, that cell shows ✎ instead of ×.
 
 ## Privacy
 

@@ -67,6 +67,7 @@
 .sdkh-summary { font-size: 12px; color: #6b7590; }
 .sdkh-summary.sdkh-yes { color: #1e2a44; font-weight: 600; }
 .sdkh-summary.sdkh-err { color: #c62828; font-weight: 600; }
+.sdkh-summary.sdkh-warn { color: #a26a00; font-weight: 600; cursor: help; }
 
 .sdkh-cats { display: flex; flex-direction: column; gap: 2px; max-height: 360px; overflow-y: auto; }
 .sdkh-cat-head {
@@ -154,7 +155,7 @@
 .sdkh-dead .sdkh-pill { color: #c62828; }
 
 /* note-position marks */
-.sdkh-key, .sdkh-elim, .sdkh-elim-soft, .sdkh-one, .sdkh-hintdigit {
+.sdkh-key, .sdkh-elim, .sdkh-elim-soft, .sdkh-elim-notes, .sdkh-one, .sdkh-hintdigit {
   position: absolute;
   z-index: 0;
   width: 30%;
@@ -256,3 +257,9 @@
 .sdkh-chip[data-edge="left"]::after { left: 18px; }
 .sdkh-chip[data-edge="right"]::after { left: auto; right: 13px; }
 .sdkh-chip[hidden] { display: none; }
+
+/* hovering the "notes erased by mistake" line: those cells, outlined amber */
+.sdkh-overlay > .sdkh-badnote { box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #e39b00; background: rgba(227, 155, 0, .10); }
+/* a cell ruled out only by the player's own notes (no placed digit, no earlier hint) */
+.sdkh-no.sdkh-no-notes { font-size: 20px; color: rgba(110, 120, 140, .7); }
+.sdkh-elim-notes { color: rgba(110, 120, 140, .9); text-decoration: line-through; }

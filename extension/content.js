@@ -154,10 +154,50 @@
     return empty > 0;
   }
 
-  function effectiveCands(st) {
+  function effectiveCands(st, useNotes) {
     const raw = candidates(st.grid);
-    if (!notesComplete(st)) return raw;
+    if (!useNotes) return raw;
     return raw.map((c, i) => (c && st.notes[i].size ? new Set([...c].filter((d) => st.notes[i].has(d))) : c));
+  }
+
+  // The puzzle's solution (backtracking on the fewest-candidates cell), cached
+  // per grid. null when the placed digits allow no solution (a wrong digit).
+  let solCache = { key: '', sol: null };
+  function solveGrid(grid) {
+    const key = grid.join('');
+    if (solCache.key === key) return solCache.sol;
+    const g = grid.slice();
+    let budget = 200000;
+    const go = () => {
+      if (--budget < 0) return false;
+      let best = -1, bestC = null;
+      for (let i = 0; i < 81; i++) {
+        if (g[i]) continue;
+        const c = [];
+        for (let d = 1; d <= 9; d++) if (!PEERS[i].some((p) => g[p] === d)) c.push(d);
+        if (!c.length) return false;
+        if (!bestC || c.length < bestC.length) { best = i; bestC = c; if (c.length === 1) break; }
+      }
+      if (best < 0) return true;
+      for (const d of bestC) { g[best] = d; if (go()) return true; }
+      g[best] = 0;
+      return false;
+    };
+    const sol = go() ? g : null;
+    solCache = { key, sol };
+    return sol;
+  }
+
+  // Notes are trusted only if complete AND none of them rules out a cell's
+  // real digit. A note erased by mistake would otherwise produce wrong hints
+  // (and Fill singles would type a wrong digit). badNotes = those cells.
+  function notesCheck(st) {
+    if (!notesComplete(st)) return { use: false, bad: [] };
+    const sol = solveGrid(st.grid);
+    if (!sol) return { use: true, bad: [] };
+    const bad = [];
+    for (let i = 0; i < 81; i++) if (!st.grid[i] && !st.notes[i].has(sol[i])) bad.push(i);
+    return { use: !bad.length, bad };
   }
 
   // Naked pairs / triples: N cells of one unit whose candidates together are
@@ -264,7 +304,8 @@
   //   dead: [idx], subsets: [group], pointing: [group]   (group.step, group.deps)
   // }
   function analyse(st) {
-    const cand0 = effectiveCands(st);
+    const nc = notesCheck(st);
+    const cand0 = effectiveCands(st, nc.use);
     const cand = cand0.map((c) => (c ? new Set(c) : null));
     const hints = [];                  // groups in discovery order
     const removedBy = new Map();       // "cell:digit" -> index in hints
@@ -351,7 +392,7 @@
     const order = (p, q) => p.step - q.step || p.cells[0] - q.cells[0];
     const subsets = hints.filter((g) => g.kind !== 'pointing').sort(order);
     const pointing = hints.filter((g) => g.kind === 'pointing').sort(order);
-    return { cand: cand0, singles, dead, subsets, pointing, hints, removedBy, usesNotes: notesComplete(st) };
+    return { cand: cand0, singles, dead, subsets, pointing, hints, removedBy, usesNotes: nc.use, badNotes: nc.bad };
   }
 
   // ---------------------------------------------------------------- input
@@ -618,6 +659,7 @@
 
   let lastSig = '';
   let last = null; // last analysis, for the list
+  let showBadNotes = false;   // hovering the "notes erased by mistake" line
   function render(force) {
     const cv = canvas();
     const st = cv ? readState() : { error: 'no board' };
@@ -639,7 +681,7 @@
     // stable colors: pairs/triples first, then pointing
     a.subsets.forEach((g, k) => { g.color = PALETTE[k % PALETTE.length]; });
     a.pointing.forEach((g, k) => { g.color = PALETTE[(a.subsets.length + k) % PALETTE.length]; });
-    last = { singles: a.singles, dead: a.dead, groups };
+    last = { singles: a.singles, dead: a.dead, badNotes: a.badNotes, groups };
     if (focus && focus.k != null) {
       const n = focus.cat === 'single' ? a.singles.length : groups[focus.cat].length;
       if (focus.k >= n) focus = null;
@@ -775,6 +817,7 @@
     // hovering one single (on the grid or in the list): draw why it is a single
     clearExplain();
     if (explaining) drawExplain(a.singles[F.k], st, a, boardGeometry(cv));
+    if (showBadNotes) for (const i of a.badNotes) cells[i].classList.add('sdkh-badnote');
     if (!F) {
       for (const i of a.dead) {
         cells[i].classList.add('sdkh-dead');
@@ -831,6 +874,7 @@
   function drawExplain(sg, st, a, g) {
     clearExplain();
     const ringed = new Set(), usedHints = new Set();
+    let byNotes = 0;
     const ring = (i) => {
       if (i == null || ringed.has(i)) return;
       ringed.add(i);
@@ -841,7 +885,7 @@
     const cross = (i, cls) => {
       const x = document.createElement('i');
       x.className = cls;
-      x.textContent = '×';
+      x.textContent = /notes/.test(cls) ? '✎' : '×';
       cells[i].appendChild(x);
     };
     const blockerIn = (unitName, d) => unitOf(unitName).cells.find((j) => st.grid[j] === d);
@@ -857,8 +901,9 @@
         const w = whyNot(sg.i, d, st, a);
         if (/^(row|column|box) /.test(w.key)) ring(blockerIn(w.key, d));
         else if (w.key.startsWith('h')) { mark(cells[sg.i], 'sdkh-elim', d); usedHints.add(+w.key.slice(1)); }
+        else if (w.key === 'notes') { mark(cells[sg.i], 'sdkh-elim-notes', d); byNotes++; }
       }
-      chip.textContent = `only ${sg.d} fits here`;
+      chip.textContent = `only ${sg.d} fits here` + (byNotes ? ` · ✎ = erased in your notes` : '');
     } else {
       // every other cell of the unit is blocked for this digit
       const u = unitOf(sg.unit);
@@ -868,9 +913,9 @@
         const w = whyNot(j, sg.d, st, a, u.name);
         if (/^(row|column|box) /.test(w.key)) { ring(blockerIn(w.key, sg.d)); cross(j, 'sdkh-no'); }
         else if (w.key.startsWith('h')) { cross(j, 'sdkh-no sdkh-no-hint'); usedHints.add(+w.key.slice(1)); }
-        else cross(j, 'sdkh-no');
+        else { cross(j, 'sdkh-no sdkh-no-notes'); byNotes++; }   // erased in the player's own notes
       }
-      chip.textContent = `only place for ${sg.d} in ${sg.unit}`;
+      chip.textContent = `only place for ${sg.d} in ${sg.unit}` + (byNotes ? ` · ✎ = erased in your notes` : '');
     }
     // earlier hints that were needed: just their cells, outlined
     for (const h of usedHints) {
@@ -953,6 +998,8 @@
   document.body.appendChild(panel);
 
   const summaryEl = panel.querySelector('.sdkh-summary');
+  summaryEl.addEventListener('mouseenter', () => { if (summaryEl.classList.contains('sdkh-badnotes')) { showBadNotes = true; render(true); } });
+  summaryEl.addEventListener('mouseleave', () => { if (showBadNotes) { showBadNotes = false; render(true); } });
   const pinEl = panel.querySelector('.sdkh-pin');
   // one-time fair-play notice
   const fairEl = panel.querySelector('.sdkh-fair');
@@ -983,8 +1030,10 @@
     }
     const counts = { single: res.singles.length, subsets: res.groups.subsets.length, pointing: res.groups.pointing.length };
     const total = counts.single + counts.subsets + counts.pointing;
-    summaryEl.className = 'sdkh-summary' + (res.dead.length ? ' sdkh-err' : total ? ' sdkh-yes' : '');
+    const bad = res.badNotes || [];
+    summaryEl.className = 'sdkh-summary' + (res.dead.length ? ' sdkh-err' : bad.length ? ' sdkh-warn sdkh-badnotes' : total ? ' sdkh-yes' : '');
     summaryEl.textContent = res.dead.length ? `⚠ ${res.dead.length} cell${res.dead.length > 1 ? 's have' : ' has'} no possible digit — check for a mistake.`
+      : bad.length ? `⚠ ${bad.length === 1 ? 'One note was' : bad.length + ' notes were'} erased by mistake, so hints use the placed digits only. Hover here to see where.`
       : total ? 'Help available:' : 'No help found with these techniques.';
     for (const c of CATS) {
       const el = catEls[c.id];

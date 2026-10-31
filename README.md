@@ -43,7 +43,7 @@ Regular games on sudoku.com also count for its tournaments and leaderboards. Hin
 
 ## Install
 
-- **Chrome Web Store:** *(link once published)*
+- **Chrome Web Store:** [Sudoku Hint Panel](https://chromewebstore.google.com/detail/sudoku-hint-panel/bhhgadcdhbondeacamocgieacckjbcon)
 - **From source:** download this repository, open `chrome://extensions`, switch on **Developer mode**, click **Load unpacked** and select the `extension` folder.
 
 Works on Classic and Killer games, the daily challenge and special editions (e.g. Storybook). Requires Chrome 111 or later.

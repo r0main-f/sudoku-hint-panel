@@ -4,6 +4,7 @@ Everything below is ready in this repository; the account, the fee and the final
 
 ## 1. Publish the source (GitHub)
 Done: https://github.com/r0main-f/sudoku-hint-panel
+- Store listing: https://chromewebstore.google.com/detail/sudoku-hint-panel/bhhgadcdhbondeacamocgieacckjbcon
 - Privacy policy URL: https://github.com/r0main-f/sudoku-hint-panel/blob/main/PRIVACY.md
 - Support URL: https://github.com/r0main-f/sudoku-hint-panel/issues
 

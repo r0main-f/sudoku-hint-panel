@@ -657,7 +657,10 @@
     const game = cv.closest('#game') || cv.parentElement;
     const g = boardGeometry(cv), out = new Array(81);
     const onBoard = (x, y) => {
-      const el = (x >= 0 && y >= 0 && x < innerWidth && y < innerHeight) ? document.elementFromPoint(x, y) : null;
+      // a point scrolled out of the window isn't covered by anything: the
+      // drawing there is simply clipped by the window edge
+      if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return true;
+      const el = document.elementFromPoint(x, y);
       return !!(el && (el === cv || el.contains(cv) || game.contains(el)));
     };
     // centre + 4 points near the corners: a partly covered cell counts as covered
@@ -686,7 +689,8 @@
     // board on this page): the panel goes quiet — title bar only, no message,
     // no numbers — until a grid is back on screen.
     const hiddenCells = covered ? covered.filter(Boolean).length : 81;
-    const idle = !r || r.width < 60 || hiddenCells > 40 || (!st.error && st.grid.every(Boolean)) || /^No .* game found/.test(st.error || '');
+    const inView = r ? Math.max(0, Math.min(r.right, innerWidth) - Math.max(r.left, 0)) * Math.max(0, Math.min(r.bottom, innerHeight) - Math.max(r.top, 0)) / (r.width * r.height || 1) : 0;
+    const idle = !r || r.width < 60 || inView < 0.4 || hiddenCells > 40 || (!st.error && st.grid.every(Boolean)) || /^No .* game found/.test(st.error || '');
     panel.classList.toggle('sdkh-idle', idle);
     if (idle) {
       overlay.style.display = 'none';

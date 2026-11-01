@@ -392,7 +392,7 @@
     const order = (p, q) => p.step - q.step || p.cells[0] - q.cells[0];
     const subsets = hints.filter((g) => g.kind !== 'pointing').sort(order);
     const pointing = hints.filter((g) => g.kind === 'pointing').sort(order);
-    return { cand: cand0, singles, dead, subsets, pointing, hints, removedBy, usesNotes: nc.use, badNotes: nc.bad };
+    return { cand: cand0, singles, dead, subsets, pointing, hints, removedBy, usesNotes: nc.use, badNotes: nc.bad, reduced: cand };
   }
 
   // ---------------------------------------------------------------- input
@@ -511,10 +511,17 @@
     finally { busy = false; panel.classList.remove('sdkh-busy'); render(true); }
   }
 
-  async function fillCandidates() {
+  // optimized: the candidates after every erasure that pairs, triples and
+  // pointing allow, chained until nothing changes (what the hints would erase).
+  async function fillCandidates(optimized) {
     const st = readState();
     if (st.error) return status(st.error, 'err');
-    const cand = candidates(st.grid);
+    let cand = candidates(st.grid);
+    if (optimized) {
+      cand = analyse(st).reduced;
+      const sol = solveGrid(st.grid);   // safety net: never erase a cell's real digit
+      if (sol) for (let i = 0; i < 81; i++) if (cand[i] && !cand[i].has(sol[i])) cand[i] = candidates(st.grid)[i];
+    }
     const jobs = [];
     for (let i = 0; i < 81; i++) {
       if (st.grid[i]) continue;
@@ -522,7 +529,7 @@
       for (let d = 1; d <= 9; d++) if (cand[i].has(d) !== st.notes[i].has(d)) toggles.push(d);
       if (toggles.length) jobs.push([i, toggles]);
     }
-    if (!jobs.length) return status('Candidates are already complete.', 'ok');
+    if (!jobs.length) return status(optimized ? 'Notes are already optimized.' : 'Candidates are already complete.', 'ok');
 
     const wasOn = pencilOn();
     if (!(await setPencil(true))) return status('Could not switch pencil mode on.', 'err');
@@ -551,13 +558,14 @@
     await sleep(250);
 
     const after = readState();
-    const c2 = candidates(after.grid);
+    const c2 = cand;
     let off = 0;
     for (let i = 0; i < 81; i++) {
       if (after.grid[i]) continue;
       if (c2[i].size !== after.notes[i].size || [...c2[i]].some((d) => !after.notes[i].has(d))) off++;
     }
-    status(off ? `Updated ${jobs.length} cells, ${off} still differ — click again.` : `Candidates filled in ${jobs.length} cells.`, off ? 'warn' : 'ok');
+    status(off ? `Updated ${jobs.length} cells, ${off} still differ — click again.`
+      : optimized ? `Optimized notes in ${jobs.length} cells.` : `Candidates filled in ${jobs.length} cells.`, off ? 'warn' : 'ok');
   }
 
   async function fillSingles() {
@@ -993,6 +1001,7 @@
       </div>
       <div class="sdkh-actions">
         <button data-act="cand" title="Alt+Shift+C — set every empty cell's notes to its possible digits">✎ Candidates</button>
+        <button data-act="opt" title="Alt+Shift+N — notes with everything pairs, triples and pointing erase already erased (chained until nothing changes)">✎ Optimized</button>
         <button data-act="fill" title="Alt+Shift+F — type the digit into every single-option cell">⚡ Fill singles</button>
         <button data-act="one" class="sdkh-one-btn" title="Alt+Shift+O — show ONE single option on the grid (the easiest first); click again for another">☝ ONE single</button>
       </div>
@@ -1123,7 +1132,8 @@
       return;
     }
     if (b.dataset.act === 'one') { pickOne(); return; }
-    if (b.dataset.act === 'cand') run(fillCandidates);
+    if (b.dataset.act === 'cand') run(() => fillCandidates(false));
+    else if (b.dataset.act === 'opt') run(() => fillCandidates(true));
     else if (b.dataset.act === 'fill') run(fillSingles);
   });
 
@@ -1188,7 +1198,7 @@
 
   window.addEventListener('keydown', (e) => {
     if (!e.isTrusted || !e.altKey || !e.shiftKey) return;
-    const map = { KeyC: () => run(fillCandidates), KeyF: () => run(fillSingles), KeyO: pickOne,
+    const map = { KeyC: () => run(() => fillCandidates(false)), KeyN: () => run(() => fillCandidates(true)), KeyF: () => run(fillSingles), KeyO: pickOne,
       KeyH: () => toggleCat('single'), KeyP: () => toggleCat('subsets'), KeyL: () => toggleCat('pointing') };
     if (map[e.code]) { e.preventDefault(); e.stopPropagation(); map[e.code](); }
   }, true);

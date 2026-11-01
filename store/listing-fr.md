@@ -28,6 +28,7 @@ TECHNIQUES
 
 OUTILS PRATIQUES
 • ✎ Candidates remplit les notes de toutes les cases vides.
+• ✎ Optimized les remplit déjà réduites par toutes les paires, triplets et « pointing », en chaîne jusqu'à ce que plus rien ne change.
 • ⚡ Fill singles inscrit le chiffre dans chaque case à choix unique.
 • Fonctionne en Classic et Killer, sur le défi quotidien et les éditions spéciales (ex. Storybook).
 • Se met à jour en direct pendant que vous jouez, fonctionne sur une nouvelle grille avant le premier coup, et ne dessine jamais par-dessus une fenêtre du site.

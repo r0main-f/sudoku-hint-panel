@@ -31,6 +31,7 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 | Button | Shortcut | Action |
 |---|---|---|
 | ✎ Candidates | Alt+Shift+C | Sets every empty cell's pencil notes to the digits still possible there. |
+| ✎ Optimized | Alt+Shift+N | Same, then erases every note that pairs, triples and pointing rule out, chained until nothing changes. |
 | ⚡ Fill singles | Alt+Shift+F | Types the digit into every single-option cell. |
 | ☝ ONE single | Alt+Shift+O | Shows one single option (easiest first); click again for another. |
 | Category titles | Alt+Shift+H / P / L | Show or hide singles / pairs & triples / pointing on the grid. |

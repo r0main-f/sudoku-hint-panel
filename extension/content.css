@@ -49,7 +49,7 @@
   cursor: pointer;
 }
 .sdkh-actions button:hover { background: #dfe7f7; }
-.sdkh-actions .sdkh-one-btn { grid-column: 1 / -1; background: #e8f5ec; border-color: #9fd3b0; color: #1f6b3b; font-weight: 600; }
+.sdkh-actions .sdkh-one-btn { background: #e8f5ec; border-color: #9fd3b0; color: #1f6b3b; font-weight: 600; }
 .sdkh-actions .sdkh-one-btn:hover { background: #d6eedf; }
 .sdkh-pin {
   display: grid;

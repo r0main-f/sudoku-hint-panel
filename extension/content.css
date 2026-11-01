@@ -267,3 +267,20 @@
 /* a cell ruled out only by the player's own notes (no placed digit, no earlier hint) */
 .sdkh-no.sdkh-no-notes { font-size: 20px; color: rgba(110, 120, 140, .7); }
 .sdkh-elim-notes { color: rgba(110, 120, 140, .9); text-decoration: line-through; }
+
+/* ------------------------------------------------------------ assist mode */
+.sdkh-actions .sdkh-assist-btn { grid-column: 1 / -1; background: #fff6e0; border-color: #ecc66a; color: #7a5300; font-weight: 600; }
+.sdkh-actions .sdkh-assist-btn:hover { background: #ffedc2; }
+.sdkh-actions .sdkh-assist-btn.sdkh-on { background: #f5b82e; border-color: #d99b10; color: #fff; }
+.sdkh-assist { display: grid; gap: 6px; padding: 8px 10px; border: 1px solid #ecc66a; border-radius: 8px; background: #fffaf0; font-size: 12.5px; color: #3d3220; }
+.sdkh-assist[hidden] { display: none; }
+.sdkh-assist-head { font-weight: 700; color: #7a5300; display: flex; gap: 6px; align-items: center; }
+.sdkh-assist-text { line-height: 1.4; }
+.sdkh-assist-btns { display: flex; gap: 6px; }
+.sdkh-assist-btns button { padding: 4px 10px; border: 1px solid #e0c46a; border-radius: 6px; background: #fff; color: #5d4a12; font: inherit; cursor: pointer; }
+.sdkh-assist-btns button:hover { background: #fff3d1; }
+.sdkh-assist-btns .sdkh-as-more { background: #f5b82e; border-color: #d99b10; color: #fff; font-weight: 600; }
+.sdkh-assist-btns .sdkh-as-more:hover { background: #e9a91c; }
+.sdkh-assist-btns button[data-as="stop"] { margin-left: auto; }
+/* level 1: the unit to look at */
+.sdkh-overlay > .sdkh-look { background: rgba(245, 184, 46, .16); }

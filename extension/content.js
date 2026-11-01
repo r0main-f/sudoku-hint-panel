@@ -610,6 +610,7 @@
   try {
     const o = JSON.parse(localStorage.getItem('sdkh_opts') || '{}');
     opts.collapsed = !!o.collapsed;
+    opts.assist = !!o.assist;
   } catch (e) { /* ignore */ }
   const saveOpts = () => { try { localStorage.setItem('sdkh_opts', JSON.stringify(opts)); } catch (e) { /* ignore */ } };
 
@@ -621,6 +622,9 @@
   ];
   let focus = null; // hover: { cat } or { cat, k }
   let pin = null;   // "ONE single": { i, d } kept on the grid until that cell is filled
+  // Assist mode: one hint at a time, easiest first, revealed in 3 levels
+  // (1 where to look · 2 what · 3 why); moves on once applied, or on Skip.
+  const assist = { on: false, key: null, level: 1, skipped: new Set(), shown: 0 };
   let gridHover = null; // { cat, i }: a hint cell under the mouse on the board
   let pinTurn = 0;  // which single the next click picks
 
@@ -750,6 +754,8 @@
       });
     }
 
+    if (assist.on) { renderAssist(a, st, cv, covered); return; }
+
     const explaining = !!(F && F.cat === 'single' && F.k != null && (focus || hoverK >= 0) && a.singles[F.k]);
     const visible = (cat, k) => {
       // explaining one single: the other active singles stay on the grid, other hints step back
@@ -850,6 +856,111 @@
     covered.forEach((hid, i) => { if (hid) cells[i].style.visibility = 'hidden'; });
     if (covered.some(Boolean)) clearExplain();
     if (covered.every(Boolean)) overlay.style.display = 'none';
+  }
+
+  // ---------------------------------------------------------------- assist mode
+  // Every hint available now, easiest first: singles (only place in a box,
+  // in a row/column, only digit in a cell), then pointing and pairs, then
+  // triples; a chained hint (step n) comes after all step n-1 hints.
+  const ASSIST_RANK = { 'hidden-box': 0, 'hidden-line': 1, naked: 2, pointing: 3, pair: 4, triple: 5 };
+  function assistList(a) {
+    const items = [];
+    a.singles.forEach((sg, k) => {
+      const kind = sg.kind === 'naked' ? 'naked' : /^box/.test(sg.unit) ? 'hidden-box' : 'hidden-line';
+      items.push({ cat: 'single', k, key: `s${sg.i}:${sg.d}`, rank: (sg.step - 1) * 10 + ASSIST_RANK[kind], pos: sg.i, item: sg });
+    });
+    for (const cat of ['subsets', 'pointing']) {
+      (cat === 'subsets' ? a.subsets : a.pointing).forEach((g, k) => {
+        items.push({ cat, k, key: `${g.kind}:${g.cells.join(',')}:${g.digits.join('')}`, rank: (g.step - 1) * 10 + ASSIST_RANK[g.kind], pos: g.cells[0], item: g });
+      });
+    }
+    return items.sort((p, q) => p.rank - q.rank || p.pos - q.pos);
+  }
+  // where to look (level 1): the unit the hint lives in
+  function assistUnit(it) {
+    if (it.cat === 'single') return it.item.kind === 'naked' ? unitsOfCell(it.item.i)[2] : unitOf(it.item.unit);
+    return unitOf(it.item.units[0].split(' → ')[0]);
+  }
+  const assistWhat = (it) => {
+    const x = it.item;
+    if (it.cat === 'single') return x.kind === 'naked' ? `only ${x.d} fits here` : `only place for ${x.d} in ${x.unit}`;
+    if (x.kind === 'pointing') { const [from, to] = x.units[0].split(' → '); return `pointing ${x.digits[0]}: ${from} → ${to}`; }
+    return `${x.kind} ${x.digits.join('·')} in ${x.units.join(' + ')}`;
+  };
+  function placeChip(text, i, g) {
+    const [x0, x1] = g.cols[i % 9], c = i % 9;
+    chip.textContent = text;
+    chip.hidden = false;
+    chip.style.left = (c === 0 ? x0 : c === 8 ? x1 : (x0 + x1) / 2) * 100 + '%';
+    chip.dataset.edge = c === 0 ? 'left' : c === 8 ? 'right' : '';
+  }
+
+  function renderAssist(a, st, cv, covered) {
+    const g = boardGeometry(cv);
+    const list = assistList(a);
+    let cur = list.find((x) => x.key === assist.key);
+    if (!cur) {
+      const was = assist.cur;   // applied by the player (not just gone)?
+      const applied = was && (was.cat === 'single' ? st.grid[was.item.i] === was.item.d
+        : [...was.item.elims].every(([j, ds]) => st.grid[j] || ds.every((d) => !st.notes[j].has(d))));
+      if (assist.key && applied) status(list.length ? '✓ Done — here is the next one.' : '✓ Done.', 'ok');
+      let open = list.filter((x) => !assist.skipped.has(x.key));
+      if (!open.length && list.length) {
+        assist.skipped.clear(); open = list;
+        status(list.length === 1 ? 'That is the only hint for now.' : 'Back to the first hint.', 'warn');
+      }
+      cur = open[0] || null;
+      assist.key = cur ? cur.key : null;
+      assist.level = 1;
+      if (cur) assist.shown++;
+    }
+    assist.cur = cur;
+    renderAssistCard(cur, a);
+    clearExplain();
+    if (cur) {
+      const x = cur.item;
+      const u = assistUnit(cur);
+      if (assist.level === 1) {
+        u.cells.forEach((j) => cells[j].classList.add('sdkh-look'));
+        placeChip(`look in ${u.name}`, u.cells[4], g);
+      } else if (cur.cat === 'single') {
+        const c = cells[x.i];
+        c.classList.add('sdkh-single', 'sdkh-strong');
+        mark(c, 'sdkh-one', x.d);
+        if (assist.level === 2) {
+          u.cells.forEach((j) => { if (j !== x.i) cells[j].classList.add('sdkh-unit'); });
+          placeChip(assistWhat(cur), x.i, g);
+        } else drawExplain(x, st, a, g);
+      } else {
+        // the group: framed, with its digits and the notes it erases
+        for (const i of x.cells) {
+          const f = document.createElement('b');
+          f.className = 'sdkh-frame sdkh-frame-strong';
+          f.style.setProperty('--c', x.color);
+          f.style.inset = '2px';
+          cells[i].insertBefore(f, cells[i].firstChild);
+          hintDigitsIn(x, i, a).forEach((d) => mark(cells[i], 'sdkh-key', d, x.color));
+        }
+        for (const [j, ds] of x.elims) ds.forEach((d) => mark(cells[j], 'sdkh-elim', d));
+        if (assist.level === 3) {
+          // where it applies, and the earlier hints it needed (red)
+          for (const n of x.units.flatMap((v) => v.split(' → '))) {
+            const uu = unitOf(n);
+            if (uu) uu.cells.forEach((j) => { if (!x.cells.includes(j)) cells[j].classList.add('sdkh-unit'); });
+          }
+          for (const h of x.deps || []) {
+            for (const i of a.hints[h].cells) {
+              if (x.cells.includes(i)) continue;
+              cells[i].classList.add('sdkh-hintcell');
+              hintDigitsIn(a.hints[h], i, a).forEach((d) => mark(cells[i], 'sdkh-hintdigit', d));
+            }
+          }
+        }
+        placeChip(assistWhat(cur), x.cells[0], g);
+      }
+    }
+    covered.forEach((hid, i) => { if (hid) cells[i].style.visibility = 'hidden'; });
+    if (covered.some(Boolean)) clearExplain();
   }
 
   // ---------------------------------------------------------------- "why is it a single?" (drawn on the grid)
@@ -1004,7 +1115,9 @@
         <button data-act="opt" title="Alt+Shift+N — notes with everything pairs, triples and pointing erase already erased (chained until nothing changes)">✎ Optimized</button>
         <button data-act="fill" title="Alt+Shift+F — type the digit into every single-option cell">⚡ Fill singles</button>
         <button data-act="one" class="sdkh-one-btn" title="Alt+Shift+O — show ONE single option on the grid (the easiest first); click again for another">☝ ONE single</button>
+        <button data-act="assist" class="sdkh-assist-btn" title="Alt+Shift+A — one hint at a time, easiest first: where to look, then what, then why">🧭 Assist</button>
       </div>
+      <div class="sdkh-assist" hidden></div>
       <div class="sdkh-pin" hidden></div>
       <div class="sdkh-summary"></div>
       <div class="sdkh-cats">${CATS.map((c) => `
@@ -1023,6 +1136,51 @@
   summaryEl.addEventListener('mouseenter', () => { if (summaryEl.classList.contains('sdkh-badnotes')) { showBadNotes = true; render(true); } });
   summaryEl.addEventListener('mouseleave', () => { if (showBadNotes) { showBadNotes = false; render(true); } });
   const pinEl = panel.querySelector('.sdkh-pin');
+  const assistEl = panel.querySelector('.sdkh-assist');
+  const assistBtn = panel.querySelector('.sdkh-assist-btn');
+  const CAT_NAME = { single: 'Single option', subsets: 'Pairs & triples', pointing: 'Pointing' };
+  let lastCard = '';
+  function renderAssistCard(cur, a) {
+    let html = '';
+    if (assist.on) {
+      if (!cur) html = `<div class="sdkh-assist-text">No hint left with these techniques — over to you.</div>
+        <div class="sdkh-assist-btns"><button data-as="stop">Stop</button></div>`;
+      else {
+        const x = cur.item, u = assistUnit(cur);
+        const virtual = cur.cat !== 'single' && !a.usesNotes;   // nothing to erase in the game's notes
+        const text = assist.level === 1 ? `Something to find in <b>${u.name}</b>.`
+          : assist.level === 2 ? `<b>${CAT_NAME[cur.cat]}</b> — ${assistWhat(cur)}.<br>`
+            + (cur.cat === 'single' ? `Type ${x.d} in the green cell.` : virtual ? 'Keep it in mind, then go on.' : 'Erase the notes circled in red.')
+          : (cur.cat === 'single' ? 'Why: drawn on the grid.' : x.deps && x.deps.length ? 'Why: where it applies, and the earlier hints (red) it needs.' : 'Why: where it applies, shaded.');
+        const more = assist.level === 1 ? 'Show what' : assist.level === 2 ? 'Show why' : '';
+        html = `<div class="sdkh-assist-head">🧭 Hint ${assist.shown}${x.step > 1 ? ` <small class="sdkh-step">step ${x.step}</small>` : ''}</div>
+          <div class="sdkh-assist-text">${text}</div>
+          <div class="sdkh-assist-btns">${more ? `<button data-as="more" class="sdkh-as-more">${more}</button>` : ''}
+            <button data-as="skip">${virtual && assist.level > 1 ? 'Next ›' : 'Skip ›'}</button><button data-as="stop" title="Leave assist mode">✕</button></div>`;
+      }
+    }
+    if (html === lastCard) return;
+    lastCard = html;
+    assistEl.innerHTML = html;
+    assistEl.hidden = !assist.on;
+    assistBtn.classList.toggle('sdkh-on', assist.on);
+    clampPanel();
+  }
+  function setAssist(on) {
+    assist.on = on;
+    assist.key = null; assist.level = 1; assist.skipped.clear(); assist.shown = 0;
+    if (on) { pin = null; for (const c of CATS) opts.show[c.id] = false; syncUi(); status(''); }
+    else renderAssistCard(null, null);
+    opts.assist = on; saveOpts();
+    render(true);
+  }
+  function assistMore() { if (assist.on && assist.key && assist.level < 3) { assist.level++; render(true); } }
+  function assistSkip() {
+    if (!assist.on || !assist.key) return;
+    assist.skipped.add(assist.key);
+    assist.key = null;
+    render(true);
+  }
   // one-time fair-play notice
   const fairEl = panel.querySelector('.sdkh-fair');
   try { fairEl.hidden = localStorage.getItem('sdkh_fairplay_ok') === '1'; } catch (e) { fairEl.hidden = false; }
@@ -1120,7 +1278,7 @@
   cats.addEventListener('mouseleave', () => { focus = null; render(true); });
 
   panel.addEventListener('click', (e) => {
-    if (e.target.closest('.sdkh-cat-head')) { toggleCat(e.target.closest('.sdkh-cat').dataset.cat); return; }
+    if (e.target.closest('.sdkh-cat-head')) { if (assist.on) setAssist(false); toggleCat(e.target.closest('.sdkh-cat').dataset.cat); return; }
     const b = e.target.closest('button');
     if (!b) return;
     if (b === minBtn) { opts.collapsed = !opts.collapsed; saveOpts(); syncUi(); clampPanel(); return; }
@@ -1131,7 +1289,11 @@
       clampPanel();
       return;
     }
-    if (b.dataset.act === 'one') { pickOne(); return; }
+    if (b.dataset.as === 'more') { assistMore(); return; }
+    if (b.dataset.as === 'skip') { assistSkip(); return; }
+    if (b.dataset.as === 'stop') { setAssist(false); return; }
+    if (b.dataset.act === 'assist') { setAssist(!assist.on); return; }
+    if (b.dataset.act === 'one') { if (assist.on) setAssist(false); pickOne(); return; }
     if (b.dataset.act === 'cand') run(() => fillCandidates(false));
     else if (b.dataset.act === 'opt') run(() => fillCandidates(true));
     else if (b.dataset.act === 'fill') run(fillSingles);
@@ -1198,7 +1360,7 @@
 
   window.addEventListener('keydown', (e) => {
     if (!e.isTrusted || !e.altKey || !e.shiftKey) return;
-    const map = { KeyC: () => run(() => fillCandidates(false)), KeyN: () => run(() => fillCandidates(true)), KeyF: () => run(fillSingles), KeyO: pickOne,
+    const map = { KeyC: () => run(() => fillCandidates(false)), KeyN: () => run(() => fillCandidates(true)), KeyF: () => run(fillSingles), KeyO: () => { if (assist.on) setAssist(false); pickOne(); }, KeyA: () => (assist.on ? assistMore() : setAssist(true)),
       KeyH: () => toggleCat('single'), KeyP: () => toggleCat('subsets'), KeyL: () => toggleCat('pointing') };
     if (map[e.code]) { e.preventDefault(); e.stopPropagation(); map[e.code](); }
   }, true);
@@ -1211,6 +1373,7 @@
   // Live updates: page-bridge.js signals every time the game saves a move;
   // the 250 ms poll is only a fallback.
   document.addEventListener('sdkh-game-saved', () => { if (!busy) render(false); });
+  if (opts.assist) setAssist(true);   // assist mode stays on across visits
   setInterval(() => { if (!busy) render(false); }, 250);
   window.addEventListener('scroll', () => render(false), { passive: true });
   window.addEventListener('resize', () => { clampPanel(); render(false); });

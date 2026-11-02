@@ -22,7 +22,7 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 | Category | What it finds |
 |---|---|
 | **Single option** | A cell where only one digit fits (“only digit here”), or a digit with one place left in a row, column or box (“only 7 in row 6”). Shown in green — the only green on the board. |
-| **Pairs & triples** | 2 cells of a row, column or box sharing the same 2 candidates (or 3 sharing 3): those digits can be erased from the rest of that unit. |
+| **Pairs & triples** | 2 cells of a row, column or box sharing the same 2 candidates (or 3 sharing 3): those digits can be erased from the rest of that unit. **Hidden** pairs & triples too: 2 digits that fit in only the same 2 cells of a unit (or 3 in 3) — those cells' other candidates can be erased. |
 | **Pointing** | All of a box's candidates for a digit lie in one row or column: that digit can be erased from the rest of the line, outside the box. And the other way round (also called claiming): all of a row's or column's candidates for a digit lie in one box, so that digit can be erased from the rest of the box. |
 
 **Chained hints:** every erasure a hint allows is applied and the search runs again until nothing new appears, so hints that only exist after earlier ones are found too. They are tagged **step 2, step 3…**.

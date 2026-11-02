@@ -246,6 +246,46 @@
       .sort((p, q) => p.cells.length - q.cells.length || p.cells[0] - q.cells[0]);
   }
 
+  // Hidden pairs / triples: N digits that, in one unit, fit in only the same N
+  // cells. Those cells must hold these digits, so their other notes can be erased.
+  function findHidden(cand) {
+    const byKey = new Map();
+    for (const u of UNITS) {
+      const where = {};   // digit -> its candidate cells in this unit (2 or 3 of them)
+      for (let d = 1; d <= 9; d++) {
+        const cs = u.cells.filter((i) => cand[i] && cand[i].has(d));
+        if (cs.length >= 2 && cs.length <= 3) where[d] = cs;
+      }
+      const ds = Object.keys(where).map(Number);
+      const pairs = new Set();   // hidden pairs of this unit: a triple containing one adds nothing
+      const consider = (digits, kind) => {
+        if (kind === 'hidden triple' && [[0, 1], [0, 2], [1, 2]].some(([x, y]) => pairs.has(digits[x] + ',' + digits[y]))) return;
+        const cells = [...new Set(digits.flatMap((d) => where[d]))].sort((a, b) => a - b);
+        if (cells.length !== digits.length) return;
+        if (kind === 'hidden pair') pairs.add(digits.join(','));
+        const key = cells.join(',') + ':' + digits.join('');
+        let g = byKey.get(key);
+        if (!g) {
+          g = { kind, cells, digits, units: [], elims: new Map() };
+          for (const i of cells) {
+            const rest = [...cand[i]].filter((d) => !digits.includes(d)).sort();
+            if (rest.length) g.elims.set(i, rest);
+          }
+          byKey.set(key, g);
+        }
+        g.units.push(u.name);
+      };
+      for (let a = 0; a < ds.length; a++)
+        for (let b = a + 1; b < ds.length; b++) consider([ds[a], ds[b]], 'hidden pair');
+      for (let a = 0; a < ds.length; a++)
+        for (let b = a + 1; b < ds.length; b++)
+          for (let c = b + 1; c < ds.length; c++) consider([ds[a], ds[b], ds[c]], 'hidden triple');
+    }
+    return [...byKey.values()]
+      .filter((g) => g.elims.size)
+      .sort((p, q) => p.cells.length - q.cells.length || p.cells[0] - q.cells[0]);
+  }
+
   // Pointing: inside one box, every candidate cell for digit d lies in a
   // single row (or column). d must then go in the box's part of that line, so
   // it can be erased from the rest of the line, outside the box.
@@ -319,7 +359,7 @@
     const stepOf = (deps) => (deps.length ? 1 + Math.max(...deps.map((h) => hints[h].step)) : 1);
 
     for (let round = 0; round < 15; round++) {
-      const found = [...findSubsets(cand), ...findPointing(cand)].filter((g) => {
+      const found = [...findSubsets(cand), ...findHidden(cand), ...findPointing(cand)].filter((g) => {
         const key = g.kind + ':' + g.cells.join(',') + ':' + g.digits.join('');
         if (seen.has(key)) return false;
         seen.add(key);
@@ -331,6 +371,9 @@
         if (g.kind === 'pointing') {   // the digit was erased elsewhere in the source unit
           const src = UNITS.find((u) => u.name === g.units[0].split(' → ')[0]);   // box, or line when claiming
           pairs = src.cells.map((j) => [j, g.digits[0]]);
+        } else if (g.kind.startsWith('hidden')) {   // its digits were erased from the unit's other cells
+          const src = UNITS.find((u) => u.name === g.units[0]);
+          pairs = src.cells.filter((j) => !g.cells.includes(j)).flatMap((j) => g.digits.map((d) => [j, d]));
         } else {                       // the group's cells lost other candidates
           pairs = g.cells.flatMap((i) => [1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => [i, d]));
         }
@@ -634,7 +677,7 @@
   function finishClick(btn) {
     if (Date.now() - finishArmed < 4000) { finishArmed = 0; btn.textContent = '🏁 Finish grid'; btn.classList.remove('sdkh-armed'); run(finishGrid); return; }
     finishArmed = Date.now();
-    btn.textContent = 'Click again to finish';
+    btn.textContent = 'Click to confirm';
     btn.classList.add('sdkh-armed');
     setTimeout(() => { if (Date.now() - finishArmed >= 3900) { btn.textContent = '🏁 Finish grid'; btn.classList.remove('sdkh-armed'); } }, 4000);
   }
@@ -905,7 +948,7 @@
   // Every hint available now, easiest first: singles (only place in a box,
   // in a row/column, only digit in a cell), then pointing and pairs, then
   // triples; a chained hint (step n) comes after all step n-1 hints.
-  const ASSIST_RANK = { 'hidden-box': 0, 'hidden-line': 1, naked: 2, pointing: 3, pair: 4, triple: 5 };
+  const ASSIST_RANK = { 'hidden-box': 0, 'hidden-line': 1, naked: 2, pointing: 3, pair: 4, triple: 5, 'hidden pair': 6, 'hidden triple': 7 };
   // A pair / triple the player has already noted: its cells' notes hold only
   // its digits (all of them between the cells), and no note it would erase is
   // left elsewhere. Nothing to do there, so assist skips it.
@@ -1262,7 +1305,7 @@
     statusTimer = setTimeout(() => { statusEl.textContent = ''; }, 6000);
   }
 
-  const KIND_LABEL = { pair: 'Pair', triple: 'Triple', pointing: 'Pointing' };
+  const KIND_LABEL = { pair: 'Pair', triple: 'Triple', 'hidden pair': 'Hidden pair', 'hidden triple': 'Hidden triple', pointing: 'Pointing' };
   // step 1 = visible on the board as it is; step n = needs the erasures of earlier hints
   const stepTag = (n) => (n > 1 ? `<small class="sdkh-step">step ${n}</small>` : '<small></small>');
   const lastItems = {};

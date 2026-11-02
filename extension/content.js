@@ -1121,7 +1121,7 @@
       </div>
       <div class="sdkh-sec"><b>2 · Step by step assist</b><small>one at a time</small></div>
       <div class="sdkh-actions">
-        <button data-act="assist" class="sdkh-assist-btn" title="Alt+Shift+A — one hint at a time, easiest first: where to look, then what, then why">🧭 Step by step assist</button>
+        <button data-act="assist" class="sdkh-assist-btn" title="Alt+Shift+A — one hint at a time, easiest first: where to look, then what, then why">🧭 Assist</button>
         <button data-act="one" class="sdkh-one-btn" title="Alt+Shift+O — show ONE single option on the grid (the easiest first); click again for another">☝ ONE single</button>
       </div>
       <div class="sdkh-assist" hidden></div>

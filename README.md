@@ -11,7 +11,7 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 - **Just the counts.** The panel shows how many hints of each kind exist right now. Nothing is drawn on the grid until you open a category.
 - **One technique.** Click a category to see its hints, drawn faintly on the grid. It stays on until you click it again, so you can move to the grid and hover its hints one by one.
 - **One hint.** **☝ ONE single** shows a single next move, easiest first, and keeps it until you fill the cell.
-- **Step by step assist.** **🧭 Step by step assist** walks you through the puzzle one hint at a time, from the simplest technique to the most complex: first only *where* to look, then on click *what* (the technique and its cells), then *why* (the reasoning drawn on the grid). Once you apply it, the next one appears; **Skip** jumps ahead.
+- **Step by step assist.** **🧭 Assist** walks you through the puzzle one hint at a time, from the simplest technique to the most complex: first only *where* to look, then on click *what* (the technique and its cells), then *why* (the reasoning drawn on the grid). Once you apply it, the next one appears; **Skip** jumps ahead.
 - **The reasoning.** With a category on, hover one of its hints on the grid to see it in full, with the earlier hints it relies on and the notes they erase — so next time you can spot it yourself.
 - **Why it's a single — drawn on the grid.** Hover a green single on the grid. Blue circles mark the placed digits that rule out the other options; light shading shows where to look; for “only place” singles, a grey × marks every other cell of that row, column or box. Red appears only when an earlier hint was needed: what it erased, and its cells outlined with its digits.
 
@@ -35,7 +35,7 @@ The panel is laid out by how much help you want, from least to most:
 |---|---|---|---|
 | **1 · Notes** — no answers given | ✎ Candidates | Alt+Shift+C | Sets every empty cell's pencil notes to the digits still possible there. |
 | | ✎ Optimized | Alt+Shift+N | Same, then erases every note that pairs, triples and pointing rule out, chained until nothing changes. |
-| **2 · Step by step assist** — one hint at a time | 🧭 Step by step assist | Alt+Shift+A | One hint at a time, easiest first — where, then what, then why. Alt+Shift+A again reveals the next level. |
+| **2 · Step by step assist** — one hint at a time | 🧭 Assist | Alt+Shift+A | One hint at a time, easiest first — where, then what, then why. Alt+Shift+A again reveals the next level. |
 | | ☝ ONE single | Alt+Shift+O | Shows one single option (easiest first); click again for another. |
 | **3 · Advanced** — all hints at once | Category titles | Alt+Shift+H / P / L | Show or hide singles / pairs & triples / pointing on the grid. |
 | | ⚡ Fill singles | Alt+Shift+F | Types the digit into every single-option cell. |

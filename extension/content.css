@@ -55,7 +55,7 @@
   cursor: pointer;
 }
 .sdkh-actions button:hover { background: #dfe7f7; }
-.sdkh-actions .sdkh-one-btn { grid-column: 1 / -1; background: #e8f5ec; border-color: #9fd3b0; color: #1f6b3b; font-weight: 600; }
+.sdkh-actions .sdkh-one-btn { background: #e8f5ec; border-color: #9fd3b0; color: #1f6b3b; font-weight: 600; }
 .sdkh-actions .sdkh-one-btn:hover { background: #d6eedf; }
 .sdkh-pin {
   display: grid;
@@ -275,7 +275,7 @@
 .sdkh-elim-notes { color: rgba(110, 120, 140, .9); text-decoration: line-through; }
 
 /* ------------------------------------------------------------ assist mode */
-.sdkh-actions .sdkh-assist-btn { grid-column: 1 / -1; background: #fff6e0; border-color: #ecc66a; color: #7a5300; font-weight: 600; }
+.sdkh-actions .sdkh-assist-btn { background: #fff6e0; border-color: #ecc66a; color: #7a5300; font-weight: 600; }
 .sdkh-actions .sdkh-assist-btn:hover { background: #ffedc2; }
 .sdkh-actions .sdkh-assist-btn.sdkh-on { background: #f5b82e; border-color: #d99b10; color: #fff; }
 .sdkh-assist { display: grid; gap: 6px; padding: 8px 10px; border: 1px solid #ecc66a; border-radius: 8px; background: #fffaf0; font-size: 12.5px; color: #3d3220; }

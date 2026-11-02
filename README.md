@@ -15,7 +15,7 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 - **The reasoning.** With a category on, hover one of its hints on the grid to see it in full, with the earlier hints it relies on and the notes they erase — so next time you can spot it yourself.
 - **Why it's a single — drawn on the grid.** Hover a green single on the grid. Blue circles mark the placed digits that rule out the other options; light shading shows where to look; for “only place” singles, a grey × marks every other cell of that row, column or box. Red appears only when an earlier hint was needed: what it erased, and its cells outlined with its digits.
 
-![Reasoning](store/screenshot-2-reasoning.png)
+![Step by step assist](store/screenshot-2-assist.png)
 
 ## Techniques
 
@@ -26,6 +26,8 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 | **Pointing** | All of a box's candidates for a digit lie in one row or column: that digit can be erased from the rest of the line, outside the box. And the other way round (also called claiming): all of a row's or column's candidates for a digit lie in one box, so that digit can be erased from the rest of the box. |
 
 **Chained hints:** every erasure a hint allows is applied and the search runs again until nothing new appears, so hints that only exist after earlier ones are found too. They are tagged **step 2, step 3…**.
+
+![Reasoning](store/screenshot-3-reasoning.png)
 
 ## Tools
 

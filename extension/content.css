@@ -39,6 +39,12 @@
 .sdkh-fair p { margin: 4px 0 6px; line-height: 1.35; }
 .sdkh-fair-ok { padding: 3px 10px; border: 1px solid #e0c46a; border-radius: 6px; background: #fff; color: #5d4a12; font: inherit; cursor: pointer; }
 .sdkh-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.sdkh-actions-1 { grid-template-columns: 1fr; }
+/* section titles, ordered by how much help they give */
+.sdkh-sec { display: flex; align-items: baseline; gap: 8px; margin: 4px 0 -2px; padding-top: 8px; border-top: 1px solid #e4e9f3; }
+.sdkh-sec-first { border-top: 0; padding-top: 0; margin-top: 0; }
+.sdkh-sec b { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #3b56a6; }
+.sdkh-sec small { margin-left: auto; font-size: 11px; color: #8a93a8; }
 .sdkh-actions button {
   padding: 7px 6px;
   border: 1px solid #c9d3e6;
@@ -269,7 +275,7 @@
 .sdkh-elim-notes { color: rgba(110, 120, 140, .9); text-decoration: line-through; }
 
 /* ------------------------------------------------------------ assist mode */
-.sdkh-actions .sdkh-assist-btn { grid-column: 1 / -1; background: #fff6e0; border-color: #ecc66a; color: #7a5300; font-weight: 600; }
+.sdkh-actions .sdkh-assist-btn { background: #fff6e0; border-color: #ecc66a; color: #7a5300; font-weight: 600; }
 .sdkh-actions .sdkh-assist-btn:hover { background: #ffedc2; }
 .sdkh-actions .sdkh-assist-btn.sdkh-on { background: #f5b82e; border-color: #d99b10; color: #fff; }
 .sdkh-assist { display: grid; gap: 6px; padding: 8px 10px; border: 1px solid #ecc66a; border-radius: 8px; background: #fffaf0; font-size: 12.5px; color: #3d3220; }

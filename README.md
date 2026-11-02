@@ -29,14 +29,16 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 
 ## Tools
 
-| Button | Shortcut | Action |
-|---|---|---|
-| ✎ Candidates | Alt+Shift+C | Sets every empty cell's pencil notes to the digits still possible there. |
-| ✎ Optimized | Alt+Shift+N | Same, then erases every note that pairs, triples and pointing rule out, chained until nothing changes. |
-| ⚡ Fill singles | Alt+Shift+F | Types the digit into every single-option cell. |
-| ☝ ONE single | Alt+Shift+O | Shows one single option (easiest first); click again for another. |
-| 🧭 Assist | Alt+Shift+A | Assist mode: one hint at a time, easiest first — where, then what, then why. Alt+Shift+A again reveals the next level. |
-| Category titles | Alt+Shift+H / P / L | Show or hide singles / pairs & triples / pointing on the grid. |
+The panel is laid out by how much help you want, from least to most:
+
+| Section | Button | Shortcut | Action |
+|---|---|---|---|
+| **1 · Notes** — no answers given | ✎ Candidates | Alt+Shift+C | Sets every empty cell's pencil notes to the digits still possible there. |
+| | ✎ Optimized | Alt+Shift+N | Same, then erases every note that pairs, triples and pointing rule out, chained until nothing changes. |
+| **2 · Assist** — one hint at a time | 🧭 Assist | Alt+Shift+A | Assist mode: one hint at a time, easiest first — where, then what, then why. Alt+Shift+A again reveals the next level. |
+| | ☝ ONE single | Alt+Shift+O | Shows one single option (easiest first); click again for another. |
+| **3 · Advanced** — all hints at once | Category titles | Alt+Shift+H / P / L | Show or hide singles / pairs & triples / pointing on the grid. |
+| | ⚡ Fill singles | Alt+Shift+F | Types the digit into every single-option cell. |
 
 The panel can be dragged anywhere (double-click its title bar to reset it), updates live as you play, works on a brand-new grid before your first move, and never draws over a site pop-up. When no game is in play (finished, hidden behind a pop-up or an ad, or no board on the page) it shrinks to a faded title bar, with no messages or numbers, until a grid is back.
 

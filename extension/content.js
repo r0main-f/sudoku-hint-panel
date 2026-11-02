@@ -1114,15 +1114,19 @@
         <p>Open only as much as you need: a count, one technique, or a single hint with its reasoning — so next time you spot it yourself. Regular games also count for sudoku.com tournaments and leaderboards: play those on your own.</p>
         <button class="sdkh-fair-ok">Got it</button>
       </div>
+      <div class="sdkh-sec sdkh-sec-first"><b>1 · Notes</b><small>no answers given</small></div>
       <div class="sdkh-actions">
         <button data-act="cand" title="Alt+Shift+C — set every empty cell's notes to its possible digits">✎ Candidates</button>
         <button data-act="opt" title="Alt+Shift+N — notes with everything pairs, triples and pointing erase already erased (chained until nothing changes)">✎ Optimized</button>
-        <button data-act="fill" title="Alt+Shift+F — type the digit into every single-option cell">⚡ Fill singles</button>
-        <button data-act="one" class="sdkh-one-btn" title="Alt+Shift+O — show ONE single option on the grid (the easiest first); click again for another">☝ ONE single</button>
+      </div>
+      <div class="sdkh-sec"><b>2 · Assist</b><small>one hint at a time</small></div>
+      <div class="sdkh-actions">
         <button data-act="assist" class="sdkh-assist-btn" title="Alt+Shift+A — one hint at a time, easiest first: where to look, then what, then why">🧭 Assist</button>
+        <button data-act="one" class="sdkh-one-btn" title="Alt+Shift+O — show ONE single option on the grid (the easiest first); click again for another">☝ ONE single</button>
       </div>
       <div class="sdkh-assist" hidden></div>
       <div class="sdkh-pin" hidden></div>
+      <div class="sdkh-sec"><b>3 · Advanced</b><small>all hints at once</small></div>
       <div class="sdkh-summary"></div>
       <div class="sdkh-cats">${CATS.map((c) => `
         <div class="sdkh-cat" data-cat="${c.id}">
@@ -1131,6 +1135,9 @@
           </div>
           <div class="sdkh-items"></div>
         </div>`).join('')}
+      </div>
+      <div class="sdkh-actions sdkh-actions-1">
+        <button data-act="fill" title="Alt+Shift+F — type the digit into every single-option cell">⚡ Fill singles</button>
       </div>
       <div class="sdkh-status"></div>
     </div>`;

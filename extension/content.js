@@ -867,7 +867,20 @@
   // in a row/column, only digit in a cell), then pointing and pairs, then
   // triples; a chained hint (step n) comes after all step n-1 hints.
   const ASSIST_RANK = { 'hidden-box': 0, 'hidden-line': 1, naked: 2, pointing: 3, pair: 4, triple: 5 };
-  function assistList(a) {
+  // A pair / triple the player has already noted: its cells' notes hold only
+  // its digits (all of them between the cells), and no note it would erase is
+  // left elsewhere. Nothing to do there, so assist skips it.
+  function alreadyNoted(g, st) {
+    const seen = new Set();
+    for (const i of g.cells) {
+      const n = st.notes[i];
+      if (!n.size || [...n].some((d) => !g.digits.includes(d))) return false;
+      n.forEach((d) => seen.add(d));
+    }
+    if (seen.size !== g.digits.length) return false;
+    return [...g.elims].every(([j, ds]) => ds.every((d) => !st.notes[j].has(d)));
+  }
+  function assistList(a, st) {
     const items = [];
     a.singles.forEach((sg, k) => {
       const kind = sg.kind === 'naked' ? 'naked' : /^box/.test(sg.unit) ? 'hidden-box' : 'hidden-line';
@@ -875,6 +888,7 @@
     });
     for (const cat of ['subsets', 'pointing']) {
       (cat === 'subsets' ? a.subsets : a.pointing).forEach((g, k) => {
+        if (cat === 'subsets' && alreadyNoted(g, st)) return;
         items.push({ cat, k, key: `${g.kind}:${g.cells.join(',')}:${g.digits.join('')}`, rank: (g.step - 1) * 10 + ASSIST_RANK[g.kind], pos: g.cells[0], item: g });
       });
     }
@@ -901,7 +915,7 @@
 
   function renderAssist(a, st, cv, covered) {
     const g = boardGeometry(cv);
-    const list = assistList(a);
+    const list = assistList(a, st);
     let cur = list.find((x) => x.key === assist.key);
     if (!cur) {
       const was = assist.cur;   // applied by the player (not just gone)?

@@ -31,6 +31,7 @@ OUTILS PRATIQUES
 • ✎ Candidates remplit les notes de toutes les cases vides.
 • ✎ Optimized les remplit déjà réduites par toutes les paires, triplets et « pointing », en chaîne jusqu'à ce que plus rien ne change.
 • ⚡ Fill singles inscrit le chiffre dans chaque case à choix unique.
+• 🏁 Finish grid inscrit la solution dans toutes les cases vides quand vous êtes vraiment bloqué (deux clics pour confirmer).
 • Fonctionne en Classic et Killer, sur le défi quotidien et les éditions spéciales (ex. Storybook).
 • Se met à jour en direct pendant que vous jouez, fonctionne sur une nouvelle grille avant le premier coup, et ne dessine jamais par-dessus une fenêtre du site.
 • Panneau léger et déplaçable ; le vert est réservé aux cases où un seul chiffre est possible.

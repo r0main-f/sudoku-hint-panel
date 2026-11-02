@@ -290,3 +290,8 @@
 .sdkh-assist-btns button[data-as="stop"] { margin-left: auto; }
 /* level 1: the unit to look at */
 .sdkh-overlay > .sdkh-look { background: rgba(245, 184, 46, .16); }
+
+/* finish grid: the most help there is — asks for a second click */
+.sdkh-actions .sdkh-finish-btn { background: #f3eefa; border-color: #cdbbe6; color: #4a2d78; }
+.sdkh-actions .sdkh-finish-btn:hover { background: #e9e0f6; }
+.sdkh-actions .sdkh-finish-btn.sdkh-armed { background: #7a4fb8; border-color: #6a3fa8; color: #fff; font-weight: 600; }

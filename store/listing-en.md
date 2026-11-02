@@ -31,6 +31,7 @@ PRACTICAL TOOLS
 • ✎ Candidates fills in every empty cell's pencil notes.
 • ✎ Optimized fills them in already narrowed by every pair, triple and pointing erasure, chained until nothing changes.
 • ⚡ Fill singles types the digit into every single-option cell.
+• 🏁 Finish grid types the solution into every empty cell when you're stuck for good (click twice to confirm).
 • Works on Classic and Killer games, the daily challenge and special editions (e.g. Storybook).
 • Updates live as you play, works on a brand-new grid before your first move, and never draws over a site pop-up.
 • Light, movable panel; green is used only where a single digit fits.

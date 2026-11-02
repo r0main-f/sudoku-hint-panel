@@ -600,6 +600,45 @@
     status(`Filled ${placed} cell${placed === 1 ? '' : 's'}.` + (next ? ` ${next} new single${next === 1 ? '' : 's'} — click again.` : ''), 'ok');
   }
 
+  // Finish grid: type the solution into every empty cell (asks for a second click).
+  async function finishGrid() {
+    const st = readState();
+    if (st.error) return status(st.error, 'err');
+    if (pageInfo().type === 'killer') return status('Finish grid isn’t available for Killer puzzles (cages aren’t used).', 'warn');
+    if (st.mistake.some(Boolean)) return status('There is a wrong digit on the board — fix it first.', 'err');
+    const sol = solveGrid(st.grid);
+    if (!sol) return status('No solution fits the digits on the board — check for a mistake.', 'err');
+    const todo = [];
+    for (let i = 0; i < 81; i++) if (!st.grid[i]) todo.push([i, sol[i]]);
+    if (!todo.length) return status('The grid is already complete.', 'ok');
+
+    const wasOn = pencilOn();
+    if (!(await setPencil(false))) return status('Could not switch pencil mode off.', 'err');
+    let first = true;
+    for (const [i, d] of todo) {
+      selectCell(i);
+      await sleep(STEP_DELAY);
+      const before = first ? readState().raw : null;
+      pressDigit(d);
+      if (first) {
+        first = false;
+        const now = await waitForChange(before);
+        if (!now || now.grid[i] !== d) { await setPencil(wasOn); return status('The game did not accept the input — stopped.', 'err'); }
+      }
+      await sleep(STEP_DELAY);
+    }
+    await setPencil(wasOn);
+    status(`Finished: ${todo.length} cell${todo.length === 1 ? '' : 's'} filled.`, 'ok');
+  }
+  let finishArmed = 0;   // first click arms the button, a second click within 4 s runs it
+  function finishClick(btn) {
+    if (Date.now() - finishArmed < 4000) { finishArmed = 0; btn.textContent = '🏁 Finish grid'; btn.classList.remove('sdkh-armed'); run(finishGrid); return; }
+    finishArmed = Date.now();
+    btn.textContent = 'Click again to finish';
+    btn.classList.add('sdkh-armed');
+    setTimeout(() => { if (Date.now() - finishArmed >= 3900) { btn.textContent = '🏁 Finish grid'; btn.classList.remove('sdkh-armed'); } }, 4000);
+  }
+
   // ---------------------------------------------------------------- display
   // Philosophy: every category is always computed. The panel says whether help
   // exists, of which kind and where; the grid only gets faint markers. Hovering
@@ -1150,8 +1189,9 @@
           <div class="sdkh-items"></div>
         </div>`).join('')}
       </div>
-      <div class="sdkh-actions sdkh-actions-1">
+      <div class="sdkh-actions">
         <button data-act="fill" title="Alt+Shift+F — type the digit into every single-option cell">⚡ Fill singles</button>
+        <button data-act="finish" class="sdkh-finish-btn" title="Type the solution into every empty cell (click twice to confirm)">🏁 Finish grid</button>
       </div>
       <div class="sdkh-status"></div>
     </div>`;
@@ -1322,6 +1362,7 @@
     if (b.dataset.act === 'cand') run(() => fillCandidates(false));
     else if (b.dataset.act === 'opt') run(() => fillCandidates(true));
     else if (b.dataset.act === 'fill') run(fillSingles);
+    else if (b.dataset.act === 'finish') finishClick(b);
   });
 
   // ---------------------------------------------------------------- dragging

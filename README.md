@@ -41,6 +41,7 @@ The panel is laid out by how much help you want, from least to most:
 | | ☝ ONE single | Alt+Shift+O | Shows one single option (easiest first); click again for another. |
 | **3 · Advanced** — all hints at once | Category titles | Alt+Shift+H / P / L | Show or hide singles / pairs & triples / pointing on the grid. |
 | | ⚡ Fill singles | Alt+Shift+F | Types the digit into every single-option cell. |
+| | 🏁 Finish grid | — | Types the solution into every empty cell, for when you're stuck for good. Click twice to confirm. |
 
 The panel can be dragged anywhere (double-click its title bar to reset it), updates live as you play, works on a brand-new grid before your first move, and never draws over a site pop-up. When no game is in play (finished, hidden behind a pop-up or an ad, or no board on the page) it shrinks to a faded title bar, with no messages or numbers, until a grid is back.
 
@@ -72,7 +73,7 @@ No data is collected or sent anywhere; see [PRIVACY.md](PRIVACY.md).
 ## Limits
 
 - Killer cages are not used when computing candidates (rows, columns and boxes only): hints stay correct, just less narrowed.
-- **Fill singles** won't run while a wrong digit is on the board.
+- **Fill singles** and **Finish grid** won't run while a wrong digit is on the board. **Finish grid** is off for Killer puzzles, since cages aren't used.
 - The extension depends on how sudoku.com stores its games; if the site changes, the panel shows a message instead of guessing. Issues and pull requests are welcome.
 
 ## License

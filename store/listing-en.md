@@ -17,7 +17,7 @@ LEARN AT YOUR OWN LEVEL
 • Just the counts: the panel shows how many single options, pairs & triples and pointing hints exist right now. Nothing is drawn on the grid until you open a category.
 • One technique: open a category to see its hints faintly on the grid.
 • One hint: "☝ ONE single" shows a single next move, easiest first, and keeps it until you fill the cell.
-• Assist mode: "🧭 Assist" guides you one hint at a time, from the simplest technique to the most complex — first where to look, then what, then why. Apply it and the next one appears; Skip jumps ahead.
+• Step by step assist: "🧭 Step by step assist" guides you one hint at a time, from the simplest technique to the most complex — first where to look, then what, then why. Apply it and the next one appears; Skip jumps ahead.
 • The reasoning: with a category on, hover one of its hints on the grid to see it in full, with the earlier hints it relies on — so next time you can find it yourself.
 • Why it's a single, drawn on the grid: hover a green cell — blue circles show the digits that rule out the rest, grey × the cells that can't take it, red only when an earlier hint was needed.
 

@@ -55,9 +55,9 @@ The panel is laid out by how much help you want, from least to most:
 | | ✎ Optimized | Alt+Shift+N | Same, then erases every note that pairs, triples and pointing rule out, chained until nothing changes. |
 | **2 · Step by step assist** — one hint at a time | 🧭 Assist | Alt+Shift+A | One hint at a time, easiest first — where, then what, then why. Alt+Shift+A again reveals the next level. |
 | | ☝ ONE single | Alt+Shift+O | Shows one single option (easiest first); click again for another. |
-| **3 · Advanced** — all hints at once | Category titles | Alt+Shift+H / L / P / K | Show or hide singles / pointing / pairs & triples / chains on the grid; **Expert techniques** unfolds the rest. |
-| | ⚡ Fill singles | Alt+Shift+F | Types the digit into every single-option cell. |
+| **3 · Fill in** — answers typed for you | ⚡ Fill singles | Alt+Shift+F | Types the digit into every single-option cell. |
 | | 🏁 Finish grid | — | Types the solution into every empty cell, for when you're stuck for good. Click twice to confirm. |
+| **4 · Advanced** — all hints at once | Category titles | Alt+Shift+H / L / P / K | Show or hide singles / pointing / pairs & triples / chains on the grid; **Expert techniques** unfolds the rest. |
 
 The panel can be dragged anywhere (double-click its title bar to reset it), updates live as you play, works on a brand-new grid before your first move, and never draws over a site pop-up. When no game is in play (finished, hidden behind a pop-up or an ad, or no board on the page) it shrinks to a faded title bar, with no messages or numbers, until a grid is back.
 

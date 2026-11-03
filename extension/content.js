@@ -1713,15 +1713,16 @@
       </div>
       <div class="sdkh-assist" hidden></div>
       <div class="sdkh-pin" hidden></div>
-      <div class="sdkh-sec"><b>3 · Advanced</b><small>all hints at once</small></div>
+      <div class="sdkh-sec"><b>3 · Fill in</b><small>answers typed for you</small></div>
+      <div class="sdkh-actions">
+        <button data-act="fill" title="Alt+Shift+F — type the digit into every single-option cell">⚡ Fill singles</button>
+        <button data-act="finish" class="sdkh-finish-btn" title="Type the solution into every empty cell (click twice to confirm)">🏁 Finish grid</button>
+      </div>
+      <div class="sdkh-sec"><b>4 · Advanced</b><small>all hints at once</small></div>
       <div class="sdkh-summary"></div>
       <div class="sdkh-cats">${CATS.filter((c) => !c.expert).map(CAT_HTML).join('')}
         <div class="sdkh-expert-head" title="Harder techniques, used only when nothing simpler helps"><span class="sdkh-fold">▸</span><span>Expert techniques</span><b class="sdkh-count"></b></div>
         <div class="sdkh-expert">${CATS.filter((c) => c.expert).map(CAT_HTML).join('')}</div>
-      </div>
-      <div class="sdkh-actions">
-        <button data-act="fill" title="Alt+Shift+F — type the digit into every single-option cell">⚡ Fill singles</button>
-        <button data-act="finish" class="sdkh-finish-btn" title="Type the solution into every empty cell (click twice to confirm)">🏁 Finish grid</button>
       </div>
       <div class="sdkh-status"></div>
     </div>`;

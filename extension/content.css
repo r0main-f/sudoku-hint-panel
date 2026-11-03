@@ -311,3 +311,13 @@
 
 /* forcing chain: the row / column / box where it breaks */
 .sdkh-overlay > .sdkh-conflict { background: rgba(229, 57, 53, .10); }
+
+/* 4 · Advanced: folded by default; a warning about the board still shows */
+.sdkh-sec-adv { cursor: pointer; user-select: none; }
+.sdkh-sec-adv:hover b { color: #2a4590; }
+.sdkh-sec-adv .sdkh-fold { display: inline-block; width: 10px; font-size: 10px; }
+.sdkh-adv-count { font-style: normal; min-width: 22px; padding: 0 7px; border-radius: 999px; background: #eef1f6; color: #9aa3b5; font-size: 11px; line-height: 18px; text-align: center; }
+.sdkh-sec-adv.sdkh-has .sdkh-adv-count { background: #325aaf; color: #fff; }
+.sdkh-adv-open .sdkh-adv-count { display: none; }
+.sdkh-panel:not(.sdkh-adv-open) .sdkh-cats,
+.sdkh-panel:not(.sdkh-adv-open) .sdkh-summary:not(.sdkh-warn):not(.sdkh-err) { display: none; }

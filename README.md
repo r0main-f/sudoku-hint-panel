@@ -47,7 +47,7 @@ On a test set of generated hard puzzles, the panel's own hints solve them all; o
 
 ## Tools
 
-The panel is laid out by how much help you want, from least to most:
+The panel is laid out by how much help you want, from least to most. **4 · Advanced** starts folded, showing just how many hints exist; click its title to unfold it (it stays as you leave it).
 
 | Section | Button | Shortcut | Action |
 |---|---|---|---|

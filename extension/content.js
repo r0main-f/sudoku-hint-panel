@@ -1078,6 +1078,7 @@
     opts.collapsed = !!o.collapsed;
     opts.assist = !!o.assist;
     opts.expert = !!o.expert;
+    opts.advanced = !!o.advanced;
   } catch (e) { /* ignore */ }
   const saveOpts = () => { try { localStorage.setItem('sdkh_opts', JSON.stringify(opts)); } catch (e) { /* ignore */ } };
 
@@ -1718,7 +1719,7 @@
         <button data-act="fill" title="Alt+Shift+F — type the digit into every single-option cell">⚡ Fill singles</button>
         <button data-act="finish" class="sdkh-finish-btn" title="Type the solution into every empty cell (click twice to confirm)">🏁 Finish grid</button>
       </div>
-      <div class="sdkh-sec"><b>4 · Advanced</b><small>all hints at once</small></div>
+      <div class="sdkh-sec sdkh-sec-adv" title="Show / hide all the hint categories"><b><span class="sdkh-fold">▸</span> 4 · Advanced</b><small>all hints at once</small><i class="sdkh-adv-count"></i></div>
       <div class="sdkh-summary"></div>
       <div class="sdkh-cats">${CATS.filter((c) => !c.expert).map(CAT_HTML).join('')}
         <div class="sdkh-expert-head" title="Harder techniques, used only when nothing simpler helps"><span class="sdkh-fold">▸</span><span>Expert techniques</span><b class="sdkh-count"></b></div>
@@ -1785,6 +1786,8 @@
   const minBtn = panel.querySelector('.sdkh-min');
   const catEls = Object.fromEntries(CATS.map((c) => [c.id, panel.querySelector(`.sdkh-cat[data-cat="${c.id}"]`)]));
   const expertHead = panel.querySelector('.sdkh-expert-head');
+  const advHead = panel.querySelector('.sdkh-sec-adv');
+  const advCountEl = advHead.querySelector('.sdkh-adv-count');
   const expertCountEl = expertHead.querySelector('.sdkh-count');
   let statusTimer;
 
@@ -1807,6 +1810,7 @@
       summaryEl.className = 'sdkh-summary sdkh-err';
       for (const c of CATS) { catEls[c.id].querySelector('.sdkh-count').textContent = '–'; setItems(c.id, ''); }
       expertCountEl.textContent = '–';
+      advCountEl.textContent = '';
       return;
     }
     const counts = { single: res.singles.length };
@@ -1814,6 +1818,8 @@
     const total = Object.values(counts).reduce((x, y) => x + y, 0);
     const expertN = CATS.filter((c) => c.expert).reduce((x, c) => x + counts[c.id], 0);
     expertCountEl.textContent = String(expertN);
+    advCountEl.textContent = String(total);
+    advHead.classList.toggle('sdkh-has', total > 0);
     expertHead.classList.toggle('sdkh-has', expertN > 0);
     const bad = res.badNotes || [];
     summaryEl.className = 'sdkh-summary' + (res.dead.length ? ' sdkh-err' : bad.length ? ' sdkh-warn sdkh-badnotes' : total ? ' sdkh-yes' : '');
@@ -1861,6 +1867,8 @@
   function syncUi() {
     for (const c of CATS) catEls[c.id].classList.toggle('sdkh-off', !opts.show[c.id]);
     panel.classList.toggle('sdkh-expert-open', !!opts.expert);
+    panel.classList.toggle('sdkh-adv-open', !!opts.advanced);
+    advHead.querySelector('.sdkh-fold').textContent = opts.advanced ? '▾' : '▸';
     expertHead.querySelector('.sdkh-fold').textContent = opts.expert ? '▾' : '▸';
     panel.classList.toggle('sdkh-collapsed', !!opts.collapsed);
     minBtn.textContent = opts.collapsed ? '+' : '–';
@@ -1868,6 +1876,8 @@
 
   const toggleCat = (cat) => {
     opts.show[cat] = !opts.show[cat];
+    if (opts.show[cat]) opts.advanced = true;   // a shortcut unfolds the section it belongs to
+    if (opts.show[cat] && CATS.find((c) => c.id === cat).expert) opts.expert = true;
     focus = null;
     saveOpts(); syncUi(); render(true);
   };
@@ -1885,6 +1895,11 @@
   cats.addEventListener('mouseleave', () => { focus = null; render(true); });
 
   panel.addEventListener('click', (e) => {
+    if (e.target.closest('.sdkh-sec-adv')) {
+      opts.advanced = !opts.advanced;
+      if (!opts.advanced) { for (const c of CATS) opts.show[c.id] = false; focus = null; }   // folded: nothing of it stays on the grid
+      saveOpts(); syncUi(); clampPanel(); render(true); return;
+    }
     if (e.target.closest('.sdkh-expert-head')) { opts.expert = !opts.expert; saveOpts(); syncUi(); clampPanel(); return; }
     if (e.target.closest('.sdkh-cat-head')) { if (assist.on) setAssist(false); toggleCat(e.target.closest('.sdkh-cat').dataset.cat); return; }
     const b = e.target.closest('button');

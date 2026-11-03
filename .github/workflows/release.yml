@@ -1,0 +1,86 @@
+# Release Sudoku Hint Panel whenever the version in extension/manifest.json changes:
+#   1. zip the extension/ folder,
+#   2. create the GitHub release vX.Y.Z with that zip, notes from CHANGELOG.md,
+#   3. if the Chrome Web Store secrets are set, upload the same zip to the store
+#      and submit it for review — so GitHub and the store stay in sync.
+# It can also be run by hand from the Actions tab ("Run workflow").
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [extension/manifest.json]
+  workflow_dispatch:
+    inputs:
+      store:
+        description: Also upload to the Chrome Web Store (if its secrets are set)
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the version
+        id: v
+        run: |
+          VERSION=$(jq -r .version extension/manifest.json)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release v$VERSION already exists: nothing to do."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build the zip
+        if: steps.v.outputs.exists == 'false'
+        run: |
+          cd extension
+          zip -qr "../sudoku-hint-panel-${{ steps.v.outputs.version }}.zip" . -x '.DS_Store'
+
+      - name: Release notes from CHANGELOG.md
+        if: steps.v.outputs.exists == 'false'
+        run: |
+          awk -v v="## ${{ steps.v.outputs.version }}" '
+            $0 == v {on=1; next}
+            on && /^## / {exit}
+            on {print}
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then echo "Version ${{ steps.v.outputs.version }}." > notes.md; fi
+          {
+            echo
+            echo "**Install:** [Chrome Web Store](https://chromewebstore.google.com/detail/sudoku-hint-panel/bhhgadcdhbondeacamocgieacckjbcon) — or download the zip below, unzip it, and load the folder in \`chrome://extensions\` (Developer mode → Load unpacked)."
+          } >> notes.md
+
+      - name: Create the GitHub release
+        if: steps.v.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v${{ steps.v.outputs.version }}" \
+            "sudoku-hint-panel-${{ steps.v.outputs.version }}.zip" \
+            --target "${{ github.sha }}" \
+            --title "Sudoku Hint Panel ${{ steps.v.outputs.version }}" \
+            --notes-file notes.md
+
+      - name: Upload to the Chrome Web Store and submit for review
+        if: steps.v.outputs.exists == 'false' && (github.event_name == 'push' || inputs.store)
+        env:
+          EXTENSION_ID: bhhgadcdhbondeacamocgieacckjbcon
+          PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+        run: |
+          if [ -z "$PUBLISHER_ID" ] || [ -z "$CLIENT_ID" ] || [ -z "$CLIENT_SECRET" ] || [ -z "$REFRESH_TOKEN" ]; then
+            echo "::notice::Chrome Web Store secrets not set — the store was not updated. See docs/PUBLISHING.md."
+            exit 0
+          fi
+          # upload, then submit for review (the store publishes it once approved)
+          npx --yes chrome-webstore-upload-cli@4.0.2 --source "sudoku-hint-panel-${{ steps.v.outputs.version }}.zip"

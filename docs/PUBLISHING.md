@@ -35,5 +35,15 @@ Copy the answers from `store/privacy-and-review-answers.md`: single purpose, hos
 ## 7. Submit for review
 Review usually takes from a few days up to a few weeks. If a reviewer asks about access to sudoku.com or the page script, the answers are in `store/privacy-and-review-answers.md`.
 
-## Updating later
-Bump `version` in `extension/manifest.json`, zip the `extension/` folder again, then **Package → Upload new package** in the dashboard and submit.
+## Updating later — releases in sync
+1. Add a `## x.y.z` section at the top of `CHANGELOG.md` (it becomes the release notes).
+2. Bump `version` in `extension/manifest.json` and push to `main`.
+
+The **Release** workflow (`.github/workflows/release.yml`) then zips `extension/`, creates the GitHub release `vx.y.z` with the zip attached, and — once the four secrets below are set — uploads the same zip to the Chrome Web Store and submits it for review. Without the secrets it only creates the GitHub release; upload the zip by hand (**Package → Upload new package**). The workflow can also be started by hand from the **Actions** tab.
+
+### Chrome Web Store access for the workflow (once)
+In the repository: **Settings → Secrets and variables → Actions → New repository secret**, add:
+- `CWS_PUBLISHER_ID` — Developer Dashboard → **Account**: your publisher ID.
+- `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN` — an OAuth client for the Chrome Web Store API, made in Google Cloud Console following this guide: https://github.com/fregante/chrome-webstore-upload-keys
+
+These secrets give access to your store listing: keep them only in GitHub's secrets, never in a file of the repository.

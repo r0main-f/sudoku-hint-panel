@@ -15,13 +15,13 @@ Done: https://github.com/r0main-f/sudoku-hint-panel
 4. If asked, enable 2-Step Verification on the account, and declare your status: for a free hobby project you are normally a **non-trader**.
 
 ## 3. New item
-1. **Add new item** → upload `sudoku-hint-panel-4.0.2.zip` (the zip contains only the `extension/` files, manifest at its root).
+1. **Add new item** → upload `sudoku-hint-panel-4.1.0.zip` (the zip contains only the `extension/` files, manifest at its root).
 
 ## 4. Store listing tab
 - **Description:** paste the English description from `store/listing-en.md`. The summary comes from the manifest (`description`).
 - **Category:** Games (or Education).
 - **Language:** English. Then add **French** and paste `store/listing-fr.md`.
-- **Graphics:** store icon = `store/store-icon-128.png` (128×128, 96 px artwork with transparent padding); upload the four `store/screenshot-*.png` (1280×800) and `store/promo-tile-440x280.png` as the small promo tile, and `store/marquee-promo-1400x560.png` as the marquee (large) promo tile.
+- **Graphics:** store icon = `store/store-icon-128.png` (128×128, 96 px artwork with transparent padding); upload the five `store/screenshot-*.png` (1280×800) and `store/promo-tile-440x280.png` as the small promo tile, and `store/marquee-promo-1400x560.png` as the marquee (large) promo tile.
 - **Additional fields:** homepage URL = GitHub repository; support URL = the repository's Issues page.
 
 ## 5. Privacy tab

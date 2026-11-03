@@ -39,6 +39,8 @@ Listed from the simplest help to the most advanced, as in the panel. A technique
 | **Long chains** | X-chains (one digit, alternating “only two places” and “see each other” links) and XY-chains (cells with two notes passing one on): one of the two ends holds the digit, so cells seeing both ends lose it. |
 | **Forcing chains** | The last resort: if this cell were 5, the singles that follow would leave a cell or a unit with no possible digit — so it isn't 5. The cell tried, the singles that follow (grey) and where it breaks (red) are drawn. |
 
+![Expert techniques](store/screenshot-5-expert.png)
+
 On a test set of generated hard puzzles, the panel's own hints solve them all; on the very hardest grids ever designed, it may still run out — **🏁 Finish grid** always works.
 
 **Chained hints:** every erasure a hint allows is applied and the search runs again until nothing new appears, so hints that only exist after earlier ones are found too. They are tagged **step 2, step 3…**.

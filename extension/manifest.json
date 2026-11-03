@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Sudoku Hint Panel",
   "short_name": "Sudoku Hints",
-  "version": "4.0.2",
-  "description": "A light hint panel for sudoku.com: candidates, single options, pairs, triples and pointing, shown step by step.",
+  "version": "4.1.0",
+  "description": "Learn sudoku on sudoku.com: from filling notes to one hint at a time with its reasoning — at the level of help you choose.",
   "minimum_chrome_version": "111",
   "icons": {
     "16": "icons/icon16.png",

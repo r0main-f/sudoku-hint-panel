@@ -23,6 +23,15 @@ jobs:
             if [ -z "${!v}" ]; then echo "::error::secret CWS_$v is missing or empty"; missing=1; else echo "secret CWS_$v: present (${#v} chars name, value hidden)"; fi
           done
           [ "$missing" = 0 ] || exit 1
+          # the shape of the publisher ID (never its value)
+          trimmed=$(printf '%s' "$PUBLISHER_ID" | tr -d '[:space:]')
+          [ "$trimmed" = "$PUBLISHER_ID" ] || echo "::warning::CWS_PUBLISHER_ID contains spaces or line breaks (trimmed for this check)"
+          PUBLISHER_ID=$trimmed
+          if printf '%s' "$PUBLISHER_ID" | grep -Eq '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'; then shape="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (the dashboard's format)"
+          elif printf '%s' "$PUBLISHER_ID" | grep -q '@'; then shape="an email address — not the publisher ID"
+          elif printf '%s' "$PUBLISHER_ID" | grep -Eq '^[a-p]{32}$'; then shape="an extension ID — not the publisher ID"
+          else shape="something else"; fi
+          echo "CWS_PUBLISHER_ID: ${#PUBLISHER_ID} characters, looks like $shape"
           token_json=$(curl -s https://oauth2.googleapis.com/token \
             -d client_id="$CLIENT_ID" -d client_secret="$CLIENT_SECRET" \
             -d refresh_token="$REFRESH_TOKEN" -d grant_type=refresh_token)

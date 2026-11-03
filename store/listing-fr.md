@@ -26,6 +26,7 @@ TECHNIQUES
 • Paires et triplets — 2 cases partageant les 2 mêmes candidats (ou 3 en partageant 3) : ces chiffres s'effacent du reste de la ligne, colonne ou carré. Paires et triplets cachés aussi : 2 chiffres qui ne vont que dans les 2 mêmes cases (ou 3 dans 3), dont les autres notes s'effacent.
 • Pointing — quand les candidats d'un chiffre dans un carré sont tous sur une même ligne ou colonne, ce chiffre s'efface du reste de cette ligne ; et inversement, quand ceux d'une ligne ou colonne sont tous dans un même carré, il s'efface du reste du carré.
 • Chaînes — quand rien de plus simple n'aide : là où un chiffre n'a que deux places dans une ligne, colonne ou carré, l'une des deux le contient. Reliées, ces cases alternent entre deux couleurs, et l'une des couleurs porte tous ces chiffres. Une couleur qui mettrait le chiffre deux fois dans une même unité est fausse, et une case qui voit les deux couleurs ne peut pas le contenir.
+• Techniques expertes, repliées jusqu'à ce que vous en ayez besoin : quads, X-wing et poissons (swordfish, jellyfish), wings (XY, XYZ, W), rectangles uniques, longues chaînes (X et XY) et chaînes forcées — chacune utilisée seulement quand rien de plus simple ne trouve rien.
 • Indices enchaînés — les indices qui n'apparaissent qu'après en avoir appliqué d'autres sont aussi trouvés, marqués « step 2, step 3… ».
 
 OUTILS PRATIQUES

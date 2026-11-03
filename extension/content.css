@@ -299,3 +299,15 @@
 /* chain links (coloring) */
 .sdkh-overlay > .sdkh-links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .sdkh-links line { stroke: #5b6b8c; stroke-width: 2; stroke-opacity: .55; stroke-linecap: round; vector-effect: non-scaling-stroke; }
+
+/* expert techniques: a folded group at the end of the list */
+.sdkh-expert-head { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 6px; padding: 5px 6px; margin-top: 4px; border-top: 1px dashed #dde3ef; cursor: pointer; color: #8a93a8; font-size: 12.5px; user-select: none; }
+.sdkh-expert-head:hover { color: #3b56a6; }
+.sdkh-expert-head .sdkh-fold { text-align: center; }
+.sdkh-expert-head .sdkh-count { min-width: 26px; padding: 1px 7px; border-radius: 999px; background: #eef1f6; color: #9aa3b5; font-size: 11px; text-align: center; }
+.sdkh-expert-head.sdkh-has .sdkh-count { background: #8a7bc6; color: #fff; }
+.sdkh-expert { display: none; }
+.sdkh-expert-open .sdkh-expert { display: block; }
+
+/* forcing chain: the row / column / box where it breaks */
+.sdkh-overlay > .sdkh-conflict { background: rgba(229, 57, 53, .10); }

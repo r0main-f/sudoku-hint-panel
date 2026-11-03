@@ -26,6 +26,7 @@ TECHNIQUES
 • Pairs & triples — 2 cells sharing the same 2 candidates (or 3 sharing 3): those digits can be erased from the rest of the row, column or box. Hidden pairs & triples too: 2 digits that fit in only the same 2 cells (or 3 in 3), so those cells' other notes go.
 • Pointing — when a box's candidates for a digit all sit in one row or column, that digit can be erased from the rest of the line; and the other way round, when a row's or column's candidates all sit in one box, from the rest of the box.
 • Chains — when nothing simpler helps: where a digit has only two places in a row, column or box, one of them holds it. Linked together, these cells alternate between two colours, and one colour holds all of that digit. A colour that would put the digit twice in one unit is wrong, and a cell that sees both colours can't hold it.
+• Expert techniques, folded away until you want them: quads, X-wing & fish (swordfish, jellyfish), wings (XY, XYZ, W), unique rectangles, long chains (X- and XY-chains) and forcing chains — each used only when everything simpler finds nothing.
 • Chained hints — hints that only appear once earlier ones are applied are found too, tagged "step 2, step 3…".
 
 PRACTICAL TOOLS

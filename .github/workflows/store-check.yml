@@ -51,6 +51,10 @@ jobs:
           echo "Store API (v1, without publisher ID) answered HTTP $code1"
           if [ "$code1" = "200" ]; then echo "OK: the Google account behind the refresh token owns Sudoku Hint Panel (draft version $(jq -r '.crxVersion // "?"' v1.json), state $(jq -r '.uploadState // "?"' v1.json))."
           else echo "v1 says: $(jq -c '.error | {code, status, message}' v1.json 2>/dev/null || head -c 300 v1.json)"; fi
+          if [ "$code" != "200" ] && [ "$code1" = "200" ]; then
+            echo "::warning::Releases will still reach the store through the older v1.1 API (v2 said: $(jq -c '.error.message' status.json 2>/dev/null))."
+            exit 0
+          fi
           if [ "$code" != "200" ]; then
             echo "::error::The store refused the request: $(jq -c '.error | {code, status, message}' status.json 2>/dev/null || head -c 300 status.json)"
             exit 1

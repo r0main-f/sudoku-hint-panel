@@ -43,7 +43,7 @@ The **Release** workflow (`.github/workflows/release.yml`) then zips `extension/
 
 ### Chrome Web Store access for the workflow (once)
 In the repository: **Settings → Secrets and variables → Actions → New repository secret**, add:
-- `CWS_PUBLISHER_ID` — Developer Dashboard → **Account**: your publisher ID.
+- `CWS_PUBLISHER_ID` — Developer Dashboard → **Publisher → Settings**: your publisher ID.
 - `CWS_CLIENT_ID`, `CWS_CLIENT_SECRET`, `CWS_REFRESH_TOKEN` — an OAuth client for the Chrome Web Store API, made in Google Cloud Console following this guide: https://github.com/fregante/chrome-webstore-upload-keys
 
 These secrets give access to your store listing: keep them only in GitHub's secrets, never in a file of the repository.

@@ -82,5 +82,14 @@ jobs:
             echo "::notice::Chrome Web Store secrets not set — the store was not updated. See docs/PUBLISHING.md."
             exit 0
           fi
-          # upload, then submit for review (the store publishes it once approved)
-          npx --yes chrome-webstore-upload-cli@4.0.2 --source "sudoku-hint-panel-${{ steps.v.outputs.version }}.zip"
+          ZIP="sudoku-hint-panel-${{ steps.v.outputs.version }}.zip"
+          # upload, then submit for review (the store publishes it once approved).
+          # The current Chrome Web Store API (v2) first; if it refuses, the older
+          # v1.1 API, which Google is phasing out but still accepts this account.
+          if npx --yes chrome-webstore-upload-cli@4.0.2 --source "$ZIP"; then
+            echo "Submitted to the Chrome Web Store (API v2)."
+          else
+            echo "::warning::The v2 store API refused — trying the older v1.1 API."
+            npx --yes chrome-webstore-upload-cli@3.5.0 --source "$ZIP"
+            echo "Submitted to the Chrome Web Store (API v1.1)."
+          fi

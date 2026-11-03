@@ -35,7 +35,13 @@ jobs:
           echo "OK: Google accepted the client ID, client secret and refresh token (scope: $(echo "$token_json" | jq -r .scope))."
           code=$(curl -s -o status.json -w '%{http_code}' -H "Authorization: Bearer $ACCESS" \
             "https://chromewebstore.googleapis.com/v2/publishers/$PUBLISHER_ID/items/$EXTENSION_ID:fetchStatus")
-          echo "Store API answered HTTP $code"
+          echo "Store API (v2, with publisher ID) answered HTTP $code"
+          # second opinion without the publisher ID: does this Google account own the item?
+          code1=$(curl -s -o v1.json -w '%{http_code}' -H "Authorization: Bearer $ACCESS" \
+            "https://www.googleapis.com/chromewebstore/v1.1/items/$EXTENSION_ID?projection=DRAFT")
+          echo "Store API (v1, without publisher ID) answered HTTP $code1"
+          if [ "$code1" = "200" ]; then echo "OK: the Google account behind the refresh token owns Sudoku Hint Panel (draft version $(jq -r '.crxVersion // "?"' v1.json), state $(jq -r '.uploadState // "?"' v1.json))."
+          else echo "v1 says: $(jq -c '.error | {code, status, message}' v1.json 2>/dev/null || head -c 300 v1.json)"; fi
           if [ "$code" != "200" ]; then
             echo "::error::The store refused the request: $(jq -c '.error | {code, status, message}' status.json 2>/dev/null || head -c 300 status.json)"
             exit 1

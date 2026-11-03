@@ -295,3 +295,7 @@
 .sdkh-actions .sdkh-finish-btn { white-space: nowrap; background: #f3eefa; border-color: #cdbbe6; color: #4a2d78; }
 .sdkh-actions .sdkh-finish-btn:hover { background: #e9e0f6; }
 .sdkh-actions .sdkh-finish-btn.sdkh-armed { background: #7a4fb8; border-color: #6a3fa8; color: #fff; font-weight: 600; }
+
+/* chain links (coloring) */
+.sdkh-overlay > .sdkh-links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.sdkh-links line { stroke: #5b6b8c; stroke-width: 2; stroke-opacity: .55; stroke-linecap: round; vector-effect: non-scaling-stroke; }

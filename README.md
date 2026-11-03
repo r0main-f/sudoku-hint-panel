@@ -24,6 +24,7 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 | **Single option** | A cell where only one digit fits (“only digit here”), or a digit with one place left in a row, column or box (“only 7 in row 6”). Shown in green — the only green on the board. |
 | **Pairs & triples** | 2 cells of a row, column or box sharing the same 2 candidates (or 3 sharing 3): those digits can be erased from the rest of that unit. **Hidden** pairs & triples too: 2 digits that fit in only the same 2 cells of a unit (or 3 in 3) — those cells' other candidates can be erased. |
 | **Pointing** | All of a box's candidates for a digit lie in one row or column: that digit can be erased from the rest of the line, outside the box. And the other way round (also called claiming): all of a row's or column's candidates for a digit lie in one box, so that digit can be erased from the rest of the box. |
+| **Chains** | Used only when nothing simpler helps. Where a digit has only two places in a row, column or box, one of them holds it: linked together, these cells alternate between two colours, and one colour holds all of that digit (“coloring”). A colour that would put the digit twice in one unit is wrong, so its cells lose it; a cell that sees both colours can't hold it. Drawn as blue and orange cells with their links. |
 
 **Chained hints:** every erasure a hint allows is applied and the search runs again until nothing new appears, so hints that only exist after earlier ones are found too. They are tagged **step 2, step 3…**.
 
@@ -39,7 +40,7 @@ The panel is laid out by how much help you want, from least to most:
 | | ✎ Optimized | Alt+Shift+N | Same, then erases every note that pairs, triples and pointing rule out, chained until nothing changes. |
 | **2 · Step by step assist** — one hint at a time | 🧭 Assist | Alt+Shift+A | One hint at a time, easiest first — where, then what, then why. Alt+Shift+A again reveals the next level. |
 | | ☝ ONE single | Alt+Shift+O | Shows one single option (easiest first); click again for another. |
-| **3 · Advanced** — all hints at once | Category titles | Alt+Shift+H / P / L | Show or hide singles / pairs & triples / pointing on the grid. |
+| **3 · Advanced** — all hints at once | Category titles | Alt+Shift+H / P / L / K | Show or hide singles / pairs & triples / pointing / chains on the grid. |
 | | ⚡ Fill singles | Alt+Shift+F | Types the digit into every single-option cell. |
 | | 🏁 Finish grid | — | Types the solution into every empty cell, for when you're stuck for good. Click twice to confirm. |
 

@@ -332,6 +332,63 @@
   }
   function boxOf(i) { return Math.floor(Math.floor(i / 9) / 3) * 3 + Math.floor((i % 9) / 3); }
 
+  // Chains on one digit ("coloring"). Where a row, column or box has only two
+  // places for d, exactly one of them is d: link them. Following the links,
+  // the cells alternate between two colours, and one colour holds all the d's.
+  //  - wrap: two cells of the same colour share a unit → that colour is wrong,
+  //    d is erased from all its cells;
+  //  - trap: a cell outside the chain sees both colours → d is erased there.
+  function findColoring(cand) {
+    const out = [];
+    for (let d = 1; d <= 9; d++) {
+      const adj = new Map(), unitOfLink = new Map();
+      for (const u of UNITS) {
+        const cs = u.cells.filter((i) => cand[i] && cand[i].has(d));
+        if (cs.length !== 2) continue;
+        const [x, y] = cs;
+        if (!adj.has(x)) adj.set(x, new Set());
+        if (!adj.has(y)) adj.set(y, new Set());
+        adj.get(x).add(y); adj.get(y).add(x);
+        const k = Math.min(x, y) + ',' + Math.max(x, y);
+        if (!unitOfLink.has(k)) unitOfLink.set(k, u.name);
+      }
+      const done = new Set();
+      for (const start of adj.keys()) {
+        if (done.has(start)) continue;
+        const colorOf = new Map([[start, 0]]), stack = [start];
+        while (stack.length) {
+          const x = stack.pop();
+          for (const y of adj.get(x)) if (!colorOf.has(y)) { colorOf.set(y, 1 - colorOf.get(x)); stack.push(y); }
+        }
+        colorOf.forEach((_, c) => done.add(c));
+        if (colorOf.size < 3) continue;
+        const chain = [...colorOf.keys()].sort((a, b) => a - b);
+        const links = [...unitOfLink.keys()].map((k) => k.split(',').map(Number)).filter(([a]) => colorOf.has(a));
+        const units = [...new Set(links.map(([a, b]) => unitOfLink.get(a + ',' + b)))];
+        const base = { kind: 'coloring', cells: chain, digits: [d], units, links, colorOf };
+        let wrap = null;
+        for (const k of [0, 1]) {
+          const grp = chain.filter((c) => colorOf.get(c) === k);
+          const u = UNITS.find((uu) => grp.filter((c) => uu.cells.includes(c)).length > 1);
+          if (u) { wrap = { k, u }; break; }
+        }
+        if (wrap) {
+          const elims = new Map(chain.filter((c) => colorOf.get(c) === wrap.k).map((c) => [c, [d]]));
+          out.push({ ...base, rule: 'wrap', falseColor: wrap.k, wrapUnit: wrap.u.name, elims });
+          continue;
+        }
+        const elims = new Map();
+        for (let i = 0; i < 81; i++) {
+          if (!cand[i] || !cand[i].has(d) || colorOf.has(i)) continue;
+          const seen = new Set(PEERS[i].filter((p) => colorOf.has(p)).map((p) => colorOf.get(p)));
+          if (seen.size === 2) elims.set(i, [d]);
+        }
+        if (elims.size) out.push({ ...base, rule: 'trap', elims });
+      }
+    }
+    return out;
+  }
+
   // Chained analysis. Every erasure a hint allows is applied to a working copy
   // of the candidates, then the search runs again, until nothing new appears.
   // So a pointing pair that only exists once another hint's erasures are done
@@ -359,7 +416,9 @@
     const stepOf = (deps) => (deps.length ? 1 + Math.max(...deps.map((h) => hints[h].step)) : 1);
 
     for (let round = 0; round < 15; round++) {
-      const found = [...findSubsets(cand), ...findHidden(cand), ...findPointing(cand)].filter((g) => {
+      let found = [...findSubsets(cand), ...findHidden(cand), ...findPointing(cand)];
+      if (!found.some((g) => [...g.elims].some(([j, ds]) => ds.some((d) => cand[j].has(d))))) found = findColoring(cand);   // chains only when nothing simpler helps
+      found = found.filter((g) => {
         const key = g.kind + ':' + g.cells.join(',') + ':' + g.digits.join('');
         if (seen.has(key)) return false;
         seen.add(key);
@@ -368,7 +427,9 @@
       if (!found.length) break;
       for (const g of found) {         // deps from earlier rounds only
         let pairs;
-        if (g.kind === 'pointing') {   // the digit was erased elsewhere in the source unit
+        if (g.kind === 'coloring') {   // the links exist because d was erased from the rest of their units
+          pairs = g.units.flatMap((n) => UNITS.find((u) => u.name === n).cells.map((j) => [j, g.digits[0]]));
+        } else if (g.kind === 'pointing') {   // the digit was erased elsewhere in the source unit
           const src = UNITS.find((u) => u.name === g.units[0].split(' → ')[0]);   // box, or line when claiming
           pairs = src.cells.map((j) => [j, g.digits[0]]);
         } else if (g.kind.startsWith('hidden')) {   // its digits were erased from the unit's other cells
@@ -433,9 +494,10 @@
 
     // stable order for the lists: by step, then position
     const order = (p, q) => p.step - q.step || p.cells[0] - q.cells[0];
-    const subsets = hints.filter((g) => g.kind !== 'pointing').sort(order);
+    const subsets = hints.filter((g) => g.kind !== 'pointing' && g.kind !== 'coloring').sort(order);
     const pointing = hints.filter((g) => g.kind === 'pointing').sort(order);
-    return { cand: cand0, singles, dead, subsets, pointing, hints, removedBy, usesNotes: nc.use, badNotes: nc.bad, reduced: cand };
+    const coloring = hints.filter((g) => g.kind === 'coloring').sort(order);
+    return { cand: cand0, singles, dead, subsets, pointing, coloring, hints, removedBy, usesNotes: nc.use, badNotes: nc.bad, reduced: cand };
   }
 
   // ---------------------------------------------------------------- input
@@ -688,7 +750,7 @@
   // an entry (or a category title) in the panel shows that hint in full.
   // Green is reserved for cells with a single option.
   // Categories start hidden on every page load; only the counts are shown.
-  const opts = { show: { single: false, subsets: false, pointing: false }, collapsed: false };
+  const opts = { show: { single: false, subsets: false, pointing: false, coloring: false }, collapsed: false };
   try {
     const o = JSON.parse(localStorage.getItem('sdkh_opts') || '{}');
     opts.collapsed = !!o.collapsed;
@@ -701,6 +763,7 @@
     { id: 'single', label: 'Single option', key: 'H' },
     { id: 'subsets', label: 'Pairs & triples', key: 'P' },
     { id: 'pointing', label: 'Pointing', key: 'L' },
+    { id: 'coloring', label: 'Chains', key: 'K' },
   ];
   let focus = null; // hover: { cat } or { cat, k }
   let pin = null;   // "ONE single": { i, d } kept on the grid until that cell is filled
@@ -713,6 +776,14 @@
   const overlay = document.createElement('div');
   overlay.className = 'sdkh-overlay';
   const cells = Array.from({ length: 81 }, () => overlay.appendChild(document.createElement('div')));
+  // links of a chain, drawn under the cells' marks
+  const linkSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  linkSvg.setAttribute('class', 'sdkh-links');
+  linkSvg.setAttribute('viewBox', '0 0 1000 1000');
+  linkSvg.setAttribute('preserveAspectRatio', 'none');
+  overlay.insertBefore(linkSvg, overlay.firstChild);
+  const CHAIN_COLORS = ['#1565c0', '#ef6c00'];   // the two colours of a chain: blue, orange
+  const CHAIN_NAMES = ['blue', 'orange'];
   document.body.appendChild(overlay);
 
   // Centres of sudoku.com's pencil-note slots, measured on its board (fraction of a cell).
@@ -788,10 +859,11 @@
       return;
     }
     const a = analyse(st);
-    const groups = { subsets: a.subsets, pointing: a.pointing };
+    const groups = { subsets: a.subsets, pointing: a.pointing, coloring: a.coloring };
     // stable colors: pairs/triples first, then pointing
     a.subsets.forEach((g, k) => { g.color = PALETTE[k % PALETTE.length]; });
     a.pointing.forEach((g, k) => { g.color = PALETTE[(a.subsets.length + k) % PALETTE.length]; });
+    a.coloring.forEach((g) => { g.color = CHAIN_COLORS[0]; });
     last = { singles: a.singles, dead: a.dead, badNotes: a.badNotes, groups };
     if (focus && focus.k != null) {
       const n = focus.cat === 'single' ? a.singles.length : groups[focus.cat].length;
@@ -825,6 +897,7 @@
     renderPin(pinK >= 0 ? a.singles[pinK] : null);
 
     cells.forEach((el) => { el.className = ''; el.removeAttribute('style'); el.textContent = ''; });
+    linkSvg.textContent = '';
     if (!r) { overlay.style.display = 'none'; return; }
     Object.assign(overlay.style, {
       display: 'block',
@@ -868,6 +941,7 @@
     }
 
     const drawGroup = (g, mode) => {  // mode: 'soft' | 'dep' | 'strong'
+      if (g.kind === 'coloring') { drawChain(g, a, mode, boardGeometry(cv)); return; }
       for (const i of g.cells) {
         const c = cells[i];
         // one crisp frame per group, inset from the cell edge so neighbouring
@@ -889,15 +963,15 @@
     };
 
     for (const h of depSet) drawGroup(a.hints[h], 'dep');
-    for (const cat of ['subsets', 'pointing']) {
+    for (const cat of ['subsets', 'pointing', 'coloring']) {
       groups[cat].forEach((g, k) => {
         if (!visible(cat, k) || depSet.has(a.hints.indexOf(g))) return;
         drawGroup(g, strong(cat, k) ? 'strong' : 'soft');
       });
     }
     if (groupFocus) {
-      // where it applies: its row / column / box, lightly shaded
-      const names = groupFocus.units.flatMap((n) => n.split(' → '));
+      // where it applies: its row / column / box, lightly shaded (a chain shows its links instead)
+      const names = groupFocus.kind === 'coloring' ? (groupFocus.wrapUnit ? [groupFocus.wrapUnit] : []) : groupFocus.units.flatMap((n) => n.split(' → '));
       for (const n of names) {
         const u = unitOf(n);
         if (u) u.cells.forEach((j) => { if (!groupFocus.cells.includes(j)) cells[j].classList.add('sdkh-unit'); });
@@ -944,11 +1018,41 @@
     if (covered.every(Boolean)) overlay.style.display = 'none';
   }
 
+  // A chain: its cells framed in its two colours with the digit, the links
+  // between them (strong modes), and the notes it erases in red.
+  function drawChain(g, a, mode, geo) {
+    const d = g.digits[0];
+    for (const i of g.cells) {
+      const col = CHAIN_COLORS[g.colorOf.get(i)];
+      const f = document.createElement('b');
+      f.className = 'sdkh-frame sdkh-frame-' + mode;
+      f.style.setProperty('--c', col);
+      f.style.inset = 2 + cells[i].querySelectorAll('.sdkh-frame').length * 4 + 'px';
+      cells[i].insertBefore(f, cells[i].firstChild);
+      if (mode !== 'soft' && !g.elims.has(i)) mark(cells[i], 'sdkh-key', d, col);
+    }
+    for (const [j, ds] of g.elims) ds.forEach((x) => mark(cells[j], mode === 'soft' ? 'sdkh-elim-soft' : 'sdkh-elim', x));
+    if (mode === 'soft') return;
+    const at = (i) => {
+      const [x0, x1] = geo.cols[i % 9], [y0, y1] = geo.rows[Math.floor(i / 9)];
+      return [(x0 + (x1 - x0) * NOTE_X[(d - 1) % 3]) * 1000, (y0 + (y1 - y0) * NOTE_Y[Math.floor((d - 1) / 3)]) * 1000];
+    };
+    for (const [p, q] of g.links) {
+      const [x1, y1] = at(p), [x2, y2] = at(q);
+      const l = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      l.setAttribute('x1', x1); l.setAttribute('y1', y1); l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+      linkSvg.appendChild(l);
+    }
+  }
+  const chainWhat = (x) => (x.rule === 'wrap'
+    ? `chain on ${x.digits[0]}: ${CHAIN_NAMES[x.falseColor]} would put two ${x.digits[0]}s in ${x.wrapUnit}`
+    : `chain on ${x.digits[0]}: these cells see both colours`);
+
   // ---------------------------------------------------------------- assist mode
   // Every hint available now, easiest first: singles (only place in a box,
   // in a row/column, only digit in a cell), then pointing and pairs, then
   // triples; a chained hint (step n) comes after all step n-1 hints.
-  const ASSIST_RANK = { 'hidden-box': 0, 'hidden-line': 1, naked: 2, pointing: 3, pair: 4, triple: 5, 'hidden pair': 6, 'hidden triple': 7 };
+  const ASSIST_RANK = { 'hidden-box': 0, 'hidden-line': 1, naked: 2, pointing: 3, pair: 4, triple: 5, 'hidden pair': 6, 'hidden triple': 7, coloring: 8 };
   // A pair / triple the player has already noted: its cells' notes hold only
   // its digits (all of them between the cells), and no note it would erase is
   // left elsewhere. Nothing to do there, so assist skips it.
@@ -968,8 +1072,8 @@
       const kind = sg.kind === 'naked' ? 'naked' : /^box/.test(sg.unit) ? 'hidden-box' : 'hidden-line';
       items.push({ cat: 'single', k, key: `s${sg.i}:${sg.d}`, rank: (sg.step - 1) * 10 + ASSIST_RANK[kind], pos: sg.i, item: sg });
     });
-    for (const cat of ['subsets', 'pointing']) {
-      (cat === 'subsets' ? a.subsets : a.pointing).forEach((g, k) => {
+    for (const cat of ['subsets', 'pointing', 'coloring']) {
+      a[cat].forEach((g, k) => {
         if (cat === 'subsets' && alreadyNoted(g, st)) return;
         items.push({ cat, k, key: `${g.kind}:${g.cells.join(',')}:${g.digits.join('')}`, rank: (g.step - 1) * 10 + ASSIST_RANK[g.kind], pos: g.cells[0], item: g });
       });
@@ -985,6 +1089,7 @@
     const x = it.item;
     if (it.cat === 'single') return x.kind === 'naked' ? `only ${x.d} fits here` : `only place for ${x.d} in ${x.unit}`;
     if (x.kind === 'pointing') { const [from, to] = x.units[0].split(' → '); return `pointing ${x.digits[0]}: ${from} → ${to}`; }
+    if (x.kind === 'coloring') return chainWhat(x);
     return `${x.kind} ${x.digits.join('·')} in ${x.units.join(' + ')}`;
   };
   function placeChip(text, i, g) {
@@ -1020,9 +1125,16 @@
     if (cur) {
       const x = cur.item;
       const u = assistUnit(cur);
-      if (assist.level === 1) {
+      if (assist.level === 1 && cur.cat === 'coloring') {
+        x.cells.forEach((j) => cells[j].classList.add('sdkh-look'));
+        placeChip(`follow the ${x.digits[0]}s`, x.cells[0], g);
+      } else if (assist.level === 1) {
         u.cells.forEach((j) => cells[j].classList.add('sdkh-look'));
         placeChip(`look in ${u.name}`, u.cells[4], g);
+      } else if (cur.cat === 'coloring') {
+        drawChain(x, a, 'strong', g);
+        if (assist.level === 3 && x.wrapUnit) unitOf(x.wrapUnit).cells.forEach((j) => cells[j].classList.add('sdkh-unit'));
+        placeChip(assistWhat(cur), x.cells[0], g);
       } else if (cur.cat === 'single') {
         const c = cells[x.i];
         c.classList.add('sdkh-single', 'sdkh-strong');
@@ -1190,7 +1302,7 @@
       let hit = null;
       if (i != null && cells[i].style.visibility !== 'hidden' && !(e.target && e.target.closest && e.target.closest('.sdkh-panel'))) {
         if (singleShown(i) && last.singles.some((sg) => sg.i === i)) hit = { cat: 'single', i };
-        else for (const cat of ['subsets', 'pointing']) {
+        else for (const cat of ['subsets', 'pointing', 'coloring']) {
           if (opts.show[cat] && last.groups[cat].some((g) => g.cells.includes(i))) { hit = { cat, i }; break; }
         }
       }
@@ -1246,7 +1358,7 @@
   const pinEl = panel.querySelector('.sdkh-pin');
   const assistEl = panel.querySelector('.sdkh-assist');
   const assistBtn = panel.querySelector('.sdkh-assist-btn');
-  const CAT_NAME = { single: 'Single option', subsets: 'Pairs & triples', pointing: 'Pointing' };
+  const CAT_NAME = { single: 'Single option', subsets: 'Pairs & triples', pointing: 'Pointing', coloring: 'Chains' };
   let lastCard = '';
   function renderAssistCard(cur, a) {
     let html = '';
@@ -1256,7 +1368,12 @@
       else {
         const x = cur.item, u = assistUnit(cur);
         const virtual = cur.cat !== 'single' && !a.usesNotes;   // nothing to erase in the game's notes
-        const text = assist.level === 1 ? `Something to find in <b>${u.name}</b>.`
+        const d = x.digits ? x.digits[0] : 0;
+        const text = assist.level === 1 && cur.cat === 'coloring' ? `Follow the <b>${d}s</b>: in several rows, columns and boxes they have only two places.`
+          : assist.level === 3 && cur.cat === 'coloring' ? (x.rule === 'wrap'
+            ? `Why: where a ${d} has only two places, one of them is the ${d}, so linked cells alternate colours and one colour holds all the ${d}s. ${cap(CHAIN_NAMES[x.falseColor])} would put two ${d}s in ${x.wrapUnit}, so its ${d}s go.`
+            : `Why: where a ${d} has only two places, one of them is the ${d}, so linked cells alternate colours and one colour holds all the ${d}s. The red cells see both colours, so they can't be ${d}.`)
+          : assist.level === 1 ? `Something to find in <b>${u.name}</b>.`
           : assist.level === 2 ? `<b>${CAT_NAME[cur.cat]}</b> — ${assistWhat(cur)}.<br>`
             + (cur.cat === 'single' ? `Type ${x.d} in the green cell.` : virtual ? 'Keep it in mind, then go on.' : 'Erase the notes circled in red.')
           : (cur.cat === 'single' ? 'Why: drawn on the grid.' : x.deps && x.deps.length ? 'Why: where it applies, and the earlier hints (red) it needs.' : 'Why: where it applies, shaded.');
@@ -1305,7 +1422,7 @@
     statusTimer = setTimeout(() => { statusEl.textContent = ''; }, 6000);
   }
 
-  const KIND_LABEL = { pair: 'Pair', triple: 'Triple', 'hidden pair': 'Hidden pair', 'hidden triple': 'Hidden triple', pointing: 'Pointing' };
+  const KIND_LABEL = { pair: 'Pair', triple: 'Triple', 'hidden pair': 'Hidden pair', 'hidden triple': 'Hidden triple', pointing: 'Pointing', coloring: 'Chain' };
   // step 1 = visible on the board as it is; step n = needs the erasures of earlier hints
   const stepTag = (n) => (n > 1 ? `<small class="sdkh-step">step ${n}</small>` : '<small></small>');
   const lastItems = {};
@@ -1316,8 +1433,8 @@
       for (const c of CATS) { catEls[c.id].querySelector('.sdkh-count').textContent = '–'; setItems(c.id, ''); }
       return;
     }
-    const counts = { single: res.singles.length, subsets: res.groups.subsets.length, pointing: res.groups.pointing.length };
-    const total = counts.single + counts.subsets + counts.pointing;
+    const counts = { single: res.singles.length, subsets: res.groups.subsets.length, pointing: res.groups.pointing.length, coloring: res.groups.coloring.length };
+    const total = counts.single + counts.subsets + counts.pointing + counts.coloring;
     const bad = res.badNotes || [];
     summaryEl.className = 'sdkh-summary' + (res.dead.length ? ' sdkh-err' : bad.length ? ' sdkh-warn sdkh-badnotes' : total ? ' sdkh-yes' : '');
     summaryEl.textContent = res.dead.length ? `⚠ ${res.dead.length} cell${res.dead.length > 1 ? 's have' : ' has'} no possible digit — check for a mistake.`
@@ -1470,7 +1587,7 @@
   window.addEventListener('keydown', (e) => {
     if (!e.isTrusted || !e.altKey || !e.shiftKey) return;
     const map = { KeyC: () => run(() => fillCandidates(false)), KeyN: () => run(() => fillCandidates(true)), KeyF: () => run(fillSingles), KeyO: () => { if (assist.on) setAssist(false); pickOne(); }, KeyA: () => (assist.on ? assistMore() : setAssist(true)),
-      KeyH: () => toggleCat('single'), KeyP: () => toggleCat('subsets'), KeyL: () => toggleCat('pointing') };
+      KeyH: () => toggleCat('single'), KeyP: () => toggleCat('subsets'), KeyL: () => toggleCat('pointing'), KeyK: () => toggleCat('coloring') };
     if (map[e.code]) { e.preventDefault(); e.stopPropagation(); map[e.code](); }
   }, true);
 

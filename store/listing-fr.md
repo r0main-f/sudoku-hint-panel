@@ -14,7 +14,7 @@ Jeux  *(alternative : Éducation)*
 Sudoku Hint Panel est un compagnon d'apprentissage pour les grilles de sudoku.com. Il ne résout jamais la grille à votre place sans que vous le demandiez : il vous dit si une étape est possible, quelle technique elle utilise et où elle se trouve — au niveau d'aide que vous choisissez.
 
 APPRENEZ À VOTRE NIVEAU
-• Juste les compteurs : le panneau indique combien de choix uniques, paires et triplets et « pointing » existent en ce moment. Rien n'est dessiné sur la grille tant que vous n'ouvrez pas une catégorie.
+• Juste les compteurs : le panneau indique combien de choix uniques, paires et triplets, « pointing » et chaînes existent en ce moment. Rien n'est dessiné sur la grille tant que vous n'ouvrez pas une catégorie.
 • Une technique : ouvrez une catégorie pour voir ses indices, discrètement, sur la grille.
 • Un indice : « ☝ ONE single » montre un seul prochain coup, le plus simple d'abord, et le garde affiché jusqu'à ce que vous remplissiez la case.
 • Assistant pas à pas : « 🧭 Assist » vous guide un indice à la fois, de la technique la plus simple à la plus complexe — d'abord où regarder, puis quoi, puis pourquoi. Appliquez-le et le suivant apparaît ; « Skip » passe au suivant.
@@ -25,6 +25,7 @@ TECHNIQUES
 • Choix unique — une case où un seul chiffre est possible, ou un chiffre qui n'a plus qu'une place dans une ligne, une colonne ou un carré.
 • Paires et triplets — 2 cases partageant les 2 mêmes candidats (ou 3 en partageant 3) : ces chiffres s'effacent du reste de la ligne, colonne ou carré. Paires et triplets cachés aussi : 2 chiffres qui ne vont que dans les 2 mêmes cases (ou 3 dans 3), dont les autres notes s'effacent.
 • Pointing — quand les candidats d'un chiffre dans un carré sont tous sur une même ligne ou colonne, ce chiffre s'efface du reste de cette ligne ; et inversement, quand ceux d'une ligne ou colonne sont tous dans un même carré, il s'efface du reste du carré.
+• Chaînes — quand rien de plus simple n'aide : là où un chiffre n'a que deux places dans une ligne, colonne ou carré, l'une des deux le contient. Reliées, ces cases alternent entre deux couleurs, et l'une des couleurs porte tous ces chiffres. Une couleur qui mettrait le chiffre deux fois dans une même unité est fausse, et une case qui voit les deux couleurs ne peut pas le contenir.
 • Indices enchaînés — les indices qui n'apparaissent qu'après en avoir appliqué d'autres sont aussi trouvés, marqués « step 2, step 3… ».
 
 OUTILS PRATIQUES

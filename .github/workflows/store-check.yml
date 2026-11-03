@@ -1,0 +1,42 @@
+# Check that the Chrome Web Store secrets work, without uploading anything:
+# trade the refresh token for an access token, then read the item's status.
+# Run it from the Actions tab ("Run workflow").
+name: Check store access
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read the item's status from the Chrome Web Store
+        env:
+          EXTENSION_ID: bhhgadcdhbondeacamocgieacckjbcon
+          PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}
+          CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+        run: |
+          for v in PUBLISHER_ID CLIENT_ID CLIENT_SECRET REFRESH_TOKEN; do
+            if [ -z "${!v}" ]; then echo "::error::secret CWS_$v is missing"; exit 1; fi
+          done
+          token_json=$(curl -s https://oauth2.googleapis.com/token \
+            -d client_id="$CLIENT_ID" -d client_secret="$CLIENT_SECRET" \
+            -d refresh_token="$REFRESH_TOKEN" -d grant_type=refresh_token)
+          ACCESS=$(echo "$token_json" | jq -r '.access_token // empty')
+          if [ -z "$ACCESS" ]; then
+            echo "::error::Google refused the client ID / secret / refresh token: $(echo "$token_json" | jq -c '{error, error_description}')"
+            exit 1
+          fi
+          echo "::add-mask::$ACCESS"
+          echo "OK: Google accepted the client ID, client secret and refresh token (scope: $(echo "$token_json" | jq -r .scope))."
+          code=$(curl -s -o status.json -w '%{http_code}' -H "Authorization: Bearer $ACCESS" \
+            "https://chromewebstore.googleapis.com/v2/publishers/$PUBLISHER_ID/items/$EXTENSION_ID:fetchStatus")
+          echo "Store API answered HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::The store refused the request: $(jq -c '.error | {code, status, message}' status.json 2>/dev/null || head -c 300 status.json)"
+            exit 1
+          fi
+          echo "OK: the store recognises the publisher ID and gives access to Sudoku Hint Panel."
+          jq '{published: .publishedItemRevisionStatus, submitted: .submittedItemRevisionStatus, lastAsyncUploadState}' status.json || cat status.json

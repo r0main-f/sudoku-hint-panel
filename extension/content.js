@@ -700,13 +700,14 @@
   const MAIN_TIERS = 2;
 
   // ---------------------------------------------------------------- grade
-  // How hard is what's left? Solve from the placed digits, always taking the
-  // easiest step available, and keep the hardest technique that was needed:
-  // 0 solved · 1 only place in a box · 2 only place in a row / column ·
-  // 3 only digit in a cell · 4 pointing · 5 pairs & triples · 6 chains ·
-  // 7 quads, X-wing · 8 swordfish, jellyfish, wings, unique rectangles ·
-  // 9 long chains · 10 forcing chains, or beyond.
-  const GRADE_NAMES = ['solved', 'only place for a digit in a box', 'only place in a row or column', 'only digit left in a cell',
+  // How hard is what's left, on sudoku.com's own scale? Solve from the placed
+  // digits, always taking the easiest step available, and count the work:
+  // each wave of singles is 1 (2 if only a row or column gives them away),
+  // each wave of erasures 8 + how far the technique is beyond pointing.
+  // The total is mapped to 1-10 with thresholds measured on ~130 sudoku.com
+  // puzzles: 1-2 Easy · 3-4 Medium · 5-6 Hard · 7-8 Expert · 9-10 Extreme
+  // (forcing chains, or a grid beyond what the panel knows, is 10).
+  const TECH_NAMES = ['', 'only place for a digit in a box', 'only place in a row or column', 'only digit left in a cell',
     'pointing', 'pairs & triples', 'chains', 'quads or X-wing', 'swordfish, jellyfish, wings or unique rectangles',
     'long chains', 'forcing chains, or beyond'];
   const GRADE_STEPS = [
@@ -718,8 +719,10 @@
     [9, (c) => findChains(c)],
     [10, (c, g) => findForcing(c, g)],
   ];
+  const GRADE_CUTS = [5, 9, 10, 12, 18, 24, 32, 41, 56];   // work needed for 2/10, 3/10 … 10/10
+  const GRADE_LEVELS = ['Easy', 'Easy', 'Medium', 'Medium', 'Hard', 'Hard', 'Expert', 'Expert', 'Extreme', 'Extreme'];
   function gradeGrid(grid0) {
-    if (!grid0.includes(0)) return 0;
+    if (!grid0.includes(0)) return { score: 0, tech: 0 };
     if (!solveGrid(grid0)) return null;   // a wrong digit on the board: no grade
     const grid = grid0.slice(), cand = candidates(grid);
     const put = (i, d) => { grid[i] = d; cand[i] = null; for (const p of PEERS[i]) if (cand[p]) cand[p].delete(d); };
@@ -732,21 +735,26 @@
       }
       return out;
     };
-    let grade = 0;
+    let tech = 0, work = 0;
+    const done = (t) => ({ score: t >= 10 ? 10 : 1 + GRADE_CUTS.filter((c) => work >= c).length, tech: Math.max(tech, t) });
     for (let guard = 0; guard < 400 && grid.includes(0); guard++) {
       if (cand.some((c) => c && c.size === 0)) return null;
       let found = hiddenIn(UNITS.slice(18)), lvl = 1;
       if (!found.size) { found = hiddenIn(UNITS.slice(0, 18)); lvl = 2; }
       if (!found.size) { found = new Map(); cand.forEach((c, i) => { if (c && c.size === 1) found.set(i, [...c][0]); }); lvl = 3; }
-      if (found.size) { found.forEach((d, i) => { if (!grid[i]) put(i, d); }); grade = Math.max(grade, lvl); continue; }
+      if (found.size) {
+        found.forEach((d, i) => { if (!grid[i]) put(i, d); });
+        tech = Math.max(tech, lvl); work += lvl === 2 ? 2 : 1;
+        continue;
+      }
       let erased = false;
       for (const [level, find] of GRADE_STEPS) {
         for (const g of find(cand, grid)) for (const [j, ds] of g.elims) for (const d of ds) if (cand[j] && cand[j].has(d)) { cand[j].delete(d); erased = true; }
-        if (erased) { grade = Math.max(grade, level); break; }
+        if (erased) { tech = Math.max(tech, level); work += 8 + level - 4; break; }
       }
-      if (!erased) return 10;   // beyond the techniques the panel knows
+      if (!erased) return done(10);   // beyond the techniques the panel knows
     }
-    return grid.includes(0) ? 10 : grade;
+    return done(grid.includes(0) ? 10 : tech);
   }
   function anySingle(cand, grid) {
     for (let i = 0; i < 81; i++) if (cand[i] && cand[i].size === 1) return true;
@@ -1863,28 +1871,39 @@
   const gradeEl = panel.querySelector('.sdkh-grade');
   // grade of what's left, worked out after the panel is drawn (cached per grid)
   const gradeCache = new Map();
-  let gradeKey = '', gradeTimer = 0;
+  let gradeKey = '', gradeTimer = 0, gradeShown = null;   // last shown: { key, score }
   function showGrade(g) {
     gradeEl.hidden = g == null;
     if (g == null) return;
-    gradeEl.textContent = `${g}/10`;
-    gradeEl.dataset.g = g;
-    gradeEl.style.setProperty('--h', String(Math.round(130 - (g - 1) * 13)));   // green → red
-    gradeEl.title = g === 0 ? 'Grid solved: 0/10'
-      : `Difficulty of what's left: ${g}/10 — the hardest step needed is ${GRADE_NAMES[g]}. It goes down as you fill the grid.`;
+    const n = g.score;
+    gradeEl.textContent = `${n}/10`;
+    gradeEl.dataset.g = n;
+    gradeEl.style.setProperty('--h', String(Math.round(130 - (n - 1) * 13)));   // green → red
+    gradeEl.title = n === 0 ? 'Grid solved: 0/10'
+      : `What's left is like a sudoku.com ${GRADE_LEVELS[n - 1]} grid: ${n}/10 (1-2 Easy · 3-4 Medium · 5-6 Hard · 7-8 Expert · 9-10 Extreme).\n`
+        + `Hardest step needed: ${TECH_NAMES[g.tech]}. It goes down as you fill the grid.`;
+  }
+  // Filling a correct digit can, rarely, reshuffle the easiest path and give a
+  // score one higher; while digits are only added, the badge never goes up.
+  function showGradeFor(key, g) {
+    const prev = gradeShown;
+    const grew = prev && g && [...prev.key].every((c, i) => c === '0' || c === key[i]);
+    const shown = grew && prev.score < g.score ? { ...g, score: prev.score } : g;
+    gradeShown = g ? { key, score: shown.score } : null;
+    showGrade(shown);
   }
   function updateGrade(st) {
-    if (!st || st.error || pageInfo().type === 'killer') { gradeKey = ''; showGrade(null); return; }   // killer: cages aren't used
+    if (!st || st.error || pageInfo().type === 'killer') { gradeKey = ''; gradeShown = null; showGrade(null); return; }   // killer: cages aren't used
     const key = st.grid.join('');
     if (key === gradeKey) return;
     gradeKey = key;
-    if (gradeCache.has(key)) { showGrade(gradeCache.get(key)); return; }
+    if (gradeCache.has(key)) { showGradeFor(key, gradeCache.get(key)); return; }
     clearTimeout(gradeTimer);
     gradeTimer = setTimeout(() => {
       const g = gradeGrid(st.grid);
       if (gradeCache.size > 200) gradeCache.clear();
       gradeCache.set(key, g);
-      if (gradeKey === key) showGrade(g);
+      if (gradeKey === key) showGradeFor(key, g);
     }, 30);
   }
   const minBtn = panel.querySelector('.sdkh-min');

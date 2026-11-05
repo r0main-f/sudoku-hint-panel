@@ -61,7 +61,7 @@ The panel is laid out by how much help you want, from least to most. **4 · Adva
 | | 🏁 Finish grid | — | Types the solution into every empty cell, for when you're stuck for good. Click twice to confirm. |
 | **4 · Advanced** — all hints at once | Category titles | Alt+Shift+H / L / P / K | Show or hide singles / pointing / pairs & triples / chains on the grid; **Expert techniques** unfolds the rest. |
 
-**Difficulty badge.** The title bar shows how hard what's left of the grid is, from 1/10 to 10/10: the hardest technique you'd need to finish from here, taking the easiest step each time (1 = only place for a digit in a box … 5 = pairs & triples … 10 = forcing chains or beyond). It goes down as you fill the grid and reads 0/10 when it's solved. Hover it for the technique.
+**Difficulty badge.** The title bar shows how hard what's left of the grid is, on sudoku.com's own scale: 1–2 Easy · 3–4 Medium · 5–6 Hard · 7–8 Expert · 9–10 Extreme. It counts the work needed to finish from here, always taking the easiest step, and how hard the hardest step is (calibrated on about 130 sudoku.com puzzles; a grid that needs forcing chains is 10/10). It goes down as you fill the grid and reads 0/10 when it's solved. Hover it for the matching level and the hardest technique.
 
 The panel can be dragged anywhere (double-click its title bar to reset it), updates live as you play, works on a brand-new grid before your first move, and never draws over a site pop-up. When no game is in play (finished, hidden behind a pop-up or an ad, or no board on the page) it shrinks to a faded title bar, with no messages or numbers, until a grid is back.
 

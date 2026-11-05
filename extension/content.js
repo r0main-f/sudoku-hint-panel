@@ -692,6 +692,56 @@
     (c, grid) => findForcing(c, grid),
   ];
   const MAIN_TIERS = 2;
+
+  // ---------------------------------------------------------------- grade
+  // How hard is what's left? Solve from the placed digits, always taking the
+  // easiest step available, and keep the hardest technique that was needed:
+  // 0 solved · 1 only place in a box · 2 only place in a row / column ·
+  // 3 only digit in a cell · 4 pointing · 5 pairs & triples · 6 chains ·
+  // 7 quads, X-wing · 8 swordfish, jellyfish, wings, unique rectangles ·
+  // 9 long chains · 10 forcing chains, or beyond.
+  const GRADE_NAMES = ['solved', 'only place for a digit in a box', 'only place in a row or column', 'only digit left in a cell',
+    'pointing', 'pairs & triples', 'chains', 'quads or X-wing', 'swordfish, jellyfish, wings or unique rectangles',
+    'long chains', 'forcing chains, or beyond'];
+  const GRADE_STEPS = [
+    [4, (c) => findPointing(c)],
+    [5, (c) => [...findSubsets(c), ...findHidden(c)]],
+    [6, (c) => findColoring(c)],
+    [7, (c) => [...findQuads(c), ...findFish(c, [2])]],
+    [8, (c) => [...findFish(c, [3, 4]), ...findWings(c), ...findRectangles(c)]],
+    [9, (c) => findChains(c)],
+    [10, (c, g) => findForcing(c, g)],
+  ];
+  function gradeGrid(grid0) {
+    if (!grid0.includes(0)) return 0;
+    if (!solveGrid(grid0)) return null;   // a wrong digit on the board: no grade
+    const grid = grid0.slice(), cand = candidates(grid);
+    const put = (i, d) => { grid[i] = d; cand[i] = null; for (const p of PEERS[i]) if (cand[p]) cand[p].delete(d); };
+    const hiddenIn = (units) => {
+      const out = new Map();
+      for (const u of units) for (let d = 1; d <= 9; d++) {
+        if (u.cells.some((j) => grid[j] === d)) continue;
+        const w = u.cells.filter((j) => cand[j] && cand[j].has(d));
+        if (w.length === 1 && !out.has(w[0])) out.set(w[0], d);
+      }
+      return out;
+    };
+    let grade = 0;
+    for (let guard = 0; guard < 400 && grid.includes(0); guard++) {
+      if (cand.some((c) => c && c.size === 0)) return null;
+      let found = hiddenIn(UNITS.slice(18)), lvl = 1;
+      if (!found.size) { found = hiddenIn(UNITS.slice(0, 18)); lvl = 2; }
+      if (!found.size) { found = new Map(); cand.forEach((c, i) => { if (c && c.size === 1) found.set(i, [...c][0]); }); lvl = 3; }
+      if (found.size) { found.forEach((d, i) => { if (!grid[i]) put(i, d); }); grade = Math.max(grade, lvl); continue; }
+      let erased = false;
+      for (const [level, find] of GRADE_STEPS) {
+        for (const g of find(cand, grid)) for (const [j, ds] of g.elims) for (const d of ds) if (cand[j] && cand[j].has(d)) { cand[j].delete(d); erased = true; }
+        if (erased) { grade = Math.max(grade, level); break; }
+      }
+      if (!erased) return 10;   // beyond the techniques the panel knows
+    }
+    return grid.includes(0) ? 10 : grade;
+  }
   function anySingle(cand, grid) {
     for (let i = 0; i < 81; i++) if (cand[i] && cand[i].size === 1) return true;
     for (const u of UNITS) for (let d = 1; d <= 9; d++) {
@@ -1176,6 +1226,8 @@
       JSON.stringify(opts.show), JSON.stringify(focus), JSON.stringify(pin), JSON.stringify(gridHover), covered ? covered.map(Number).join('') : ''].join('|');
     if (!force && sig === lastSig) return;
     lastSig = sig;
+
+    updateGrade(cv ? st : null);
 
     // No game in play (finished, behind a pop-up or an ad, scrolled away, or no
     // board on this page): the panel goes quiet — title bar only, no message,
@@ -1695,7 +1747,7 @@
   const panel = document.createElement('div');
   panel.className = 'sdkh-panel';
   panel.innerHTML = `
-    <div class="sdkh-head" title="Drag the panel to move it · double-click here to put it back top-right"><span>⠿ Sudoku Hint Panel</span><button class="sdkh-min" title="Collapse / expand">–</button></div>
+    <div class="sdkh-head" title="Drag the panel to move it · double-click here to put it back top-right"><span>⠿ Sudoku Hint Panel</span><b class="sdkh-grade" hidden></b><button class="sdkh-min" title="Collapse / expand">–</button></div>
     <div class="sdkh-body">
       <div class="sdkh-fair" hidden>
         <b>Learn at your own level</b>
@@ -1783,6 +1835,33 @@
   try { fairEl.hidden = localStorage.getItem('sdkh_fairplay_ok') === '1'; } catch (e) { fairEl.hidden = false; }
   const statusEl = panel.querySelector('.sdkh-status');
   const headEl = panel.querySelector('.sdkh-head');
+  const gradeEl = panel.querySelector('.sdkh-grade');
+  // grade of what's left, worked out after the panel is drawn (cached per grid)
+  const gradeCache = new Map();
+  let gradeKey = '', gradeTimer = 0;
+  function showGrade(g) {
+    gradeEl.hidden = g == null;
+    if (g == null) return;
+    gradeEl.textContent = `${g}/10`;
+    gradeEl.dataset.g = g;
+    gradeEl.style.setProperty('--h', String(Math.round(130 - (g - 1) * 13)));   // green → red
+    gradeEl.title = g === 0 ? 'Grid solved: 0/10'
+      : `Difficulty of what's left: ${g}/10 — the hardest step needed is ${GRADE_NAMES[g]}. It goes down as you fill the grid.`;
+  }
+  function updateGrade(st) {
+    if (!st || st.error || pageInfo().type === 'killer') { gradeKey = ''; showGrade(null); return; }   // killer: cages aren't used
+    const key = st.grid.join('');
+    if (key === gradeKey) return;
+    gradeKey = key;
+    if (gradeCache.has(key)) { showGrade(gradeCache.get(key)); return; }
+    clearTimeout(gradeTimer);
+    gradeTimer = setTimeout(() => {
+      const g = gradeGrid(st.grid);
+      if (gradeCache.size > 200) gradeCache.clear();
+      gradeCache.set(key, g);
+      if (gradeKey === key) showGrade(g);
+    }, 30);
+  }
   const minBtn = panel.querySelector('.sdkh-min');
   const catEls = Object.fromEntries(CATS.map((c) => [c.id, panel.querySelector(`.sdkh-cat[data-cat="${c.id}"]`)]));
   const expertHead = panel.querySelector('.sdkh-expert-head');

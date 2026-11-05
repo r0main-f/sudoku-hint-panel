@@ -4,6 +4,10 @@ Each `## x.y.z` section below becomes the notes of the GitHub release `vx.y.z`
 (see `.github/workflows/release.yml`). Add a section here before bumping the
 version in `extension/manifest.json`.
 
+## 4.2.0
+
+- **Difficulty badge in the title bar**, from 1/10 to 10/10: the hardest technique needed to finish what's left of the grid, always taking the easiest step (1 only place for a digit in a box · 2 in a row or column · 3 only digit in a cell · 4 pointing · 5 pairs & triples · 6 chains · 7 quads, X-wing · 8 swordfish, jellyfish, wings, unique rectangles · 9 long chains · 10 forcing chains or beyond). It goes down as you fill the grid and reads 0/10 once solved. Not shown on Killer puzzles.
+
 ## 4.1.0
 
 The first public release with every technique, and a panel laid out by how much help you want.

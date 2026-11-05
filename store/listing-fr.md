@@ -38,6 +38,7 @@ LES TECHNIQUES, DE LA PLUS SIMPLE
 Une technique plus difficile n'est utilisée que quand rien de plus simple ne trouve rien, pour que les indices restent aussi simples que la grille le permet. Les indices qui n'apparaissent qu'après en avoir appliqué d'autres sont aussi trouvés, marqués « step 2, step 3… ».
 
 BON À SAVOIR
+• Un badge de difficulté dans la barre de titre évalue ce qui reste de la grille sur l'échelle de sudoku.com (1–2 Facile · 3–4 Moyen · 5–6 Difficile · 7–8 Expert · 9–10 Extrême) et baisse à mesure que vous la remplissez, jusqu'à 0/10 une fois résolue.
 • Fonctionne en Classic et Killer, sur le défi quotidien et les éditions spéciales (ex. Storybook).
 • Se met à jour en direct pendant que vous jouez, fonctionne sur une nouvelle grille avant le premier coup, ne dessine jamais par-dessus une fenêtre du site, et se met en veille quand aucune partie n'est à l'écran.
 • Si l'une de vos notes exclut le chiffre qui va réellement dans la case, le panneau vous le signale et montre où, au lieu de donner un indice faux.

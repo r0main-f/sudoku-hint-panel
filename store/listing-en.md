@@ -38,6 +38,7 @@ TECHNIQUES, FROM THE SIMPLEST
 A harder technique is only used when everything simpler finds nothing, so hints stay as easy as the grid allows. Hints that only appear once earlier ones are applied are found too, tagged "step 2, step 3…".
 
 GOOD TO KNOW
+• A difficulty badge in the title bar rates what's left of the grid on sudoku.com's own scale (1–2 Easy · 3–4 Medium · 5–6 Hard · 7–8 Expert · 9–10 Extreme) and goes down as you fill it, to 0/10 once solved.
 • Works on Classic and Killer games, the daily challenge and special editions (e.g. Storybook).
 • Updates live as you play, works on a brand-new grid before your first move, never draws over a site pop-up, and goes quiet when no game is on screen.
 • If one of your notes rules out the digit that really goes there, the panel tells you and shows where, instead of giving a wrong hint.

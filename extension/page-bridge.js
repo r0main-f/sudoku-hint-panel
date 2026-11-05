@@ -32,7 +32,8 @@
 
   // --- new puzzles ---------------------------------------------------------
   // classic/killer/events: /api/v2/level/…   daily challenge: /api/dc/2026-10-25   postcards: /api/content/…
-  const LEVEL_URL = /\/api\/(v\d+\/)?(level\/(?!finish)|dc\/(?!finish)|content\/)/;
+  // switching difficulty in the page: /api/v2/classic/medium/app_start
+  const LEVEL_URL = /\/api\/(v\d+\/)?(level\/(?!finish)|dc\/(?!finish)|content\/|(classic|killer)\/[a-z]+\/app_start)/;
   function onLevel(url, data) {
     try {
       if (!data || typeof data.mission !== 'string' || !/^\d{81}$/.test(data.mission)) return;

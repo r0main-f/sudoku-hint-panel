@@ -48,6 +48,12 @@
     try { lv = JSON.parse(document.documentElement.dataset.sdkhLevel || 'null'); } catch (e) { return null; }
     if (!lv || lv.type !== page.type || !/^\d{81}$/.test(lv.mission)) return null;
     if (saved && String(saved.id) === String(lv.id)) return null;          // already saved
+    // the site says which puzzle is on screen: trust it over save timing
+    // (switching difficulty can save the previous game after the new one loads)
+    if (page.id) {
+      if (saved && String(saved.id) === page.id) return null;
+      if (String(lv.id) === page.id) return lv;
+    }
     const lastSave = Number(document.documentElement.dataset.sdkhSaveT || 0);
     if (lastSave > lv.t) return null;                                      // saved since: saved game wins
     return lv;
@@ -1198,12 +1204,31 @@
   function coverMap(cv, r) {
     const game = cv.closest('#game') || cv.parentElement;
     const g = boardGeometry(cv), out = new Array(81);
+    const paintCache = new Map();
+    // does this layer actually show something over the board? (an ad layer
+    // left in place after it has gone invisible must not count)
+    const paints = (el) => {
+      if (paintCache.has(el)) return paintCache.get(el);
+      let shows = false, opacity = 1;
+      for (let e = el; e && !e.contains(cv) && !shows; e = e.parentElement) {
+        const cs = getComputedStyle(e);
+        if (cs.visibility === 'hidden' || cs.display === 'none') break;
+        opacity *= Number(cs.opacity);
+        if (opacity < 0.15) break;
+        const bg = cs.backgroundColor.match(/[\d.]+/g);
+        const alpha = !bg ? 0 : bg.length > 3 ? Number(bg[3]) : 1;
+        shows = alpha > 0.15 || cs.backgroundImage !== 'none' || /^(IMG|VIDEO|IFRAME|CANVAS|SVG|svg)$/.test(e.tagName);
+      }
+      paintCache.set(el, shows);
+      return shows;
+    };
     const onBoard = (x, y) => {
       // a point scrolled out of the window isn't covered by anything: the
       // drawing there is simply clipped by the window edge
       if (x < 0 || y < 0 || x >= innerWidth || y >= innerHeight) return true;
       const el = document.elementFromPoint(x, y);
-      return !!(el && (el === cv || el.contains(cv) || game.contains(el)));
+      if (!el) return false;
+      return el === cv || el.contains(cv) || game.contains(el) || !paints(el);
     };
     // centre + 4 points near the corners: a partly covered cell counts as covered
     const pts = [[0.5, 0.5], [0.12, 0.12], [0.88, 0.12], [0.12, 0.88], [0.88, 0.88]];

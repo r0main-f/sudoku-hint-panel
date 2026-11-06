@@ -53,6 +53,10 @@ jobs:
             live=$(curl -sL -A "Mozilla/5.0" "https://chromewebstore.google.com/detail/sudoku-hint-panel/$EXTENSION_ID?hl=en" \
               | grep -oE 'Version</div><div[^>]*>[0-9]+(\.[0-9]+)+|"version":"[0-9]+(\.[0-9]+)+"|>Version<[^0-9]{0,200}[0-9]+(\.[0-9]+)+' | grep -oE '[0-9]+(\.[0-9]+)+' | head -1)
             echo "Live version on the public store page: ${live:-not found}"
+            # who the store says offers the item (publisher name, or the account email if none is set)
+            curl -sL -A "Mozilla/5.0" "https://chromewebstore.google.com/detail/sudoku-hint-panel/$EXTENSION_ID?hl=en" > page.html
+            echo "Publisher shown on the store page:"; grep -oE '(Offered by|Developer|Trader|Non-trader)[^<]{0,20}(<[^>]*>){0,6}[^<]{1,80}' page.html | sed 's/<[^>]*>/ /g' | sort -u | head -8
+            grep -oE '"[^"]{0,40}@[a-z0-9.-]+\.[a-z]+"' page.html | sort -u | head -5
           else echo "v1 says: $(jq -c '.error | {code, status, message}' v1.json 2>/dev/null || head -c 300 v1.json)"; fi
           if [ "$code" != "200" ] && [ "$code1" = "200" ]; then
             echo "::warning::Releases will still reach the store through the older v1.1 API (v2 said: $(jq -c '.error.message' status.json 2>/dev/null))."

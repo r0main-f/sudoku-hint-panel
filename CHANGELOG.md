@@ -4,6 +4,10 @@ Each `## x.y.z` section below becomes the notes of the GitHub release `vx.y.z`
 (see `.github/workflows/release.yml`). Add a section here before bumping the
 version in `extension/manifest.json`.
 
+## 4.3.0
+
+- **🏁 Finish grid solves like a person**: it types the rest of the solution one digit at a time, in the order you could find it — the only place for a digit in a box first, then in a row or column, then the only digit left in a cell, and the easiest technique that unlocks the next digit when no single is left. If a grid needs more than the panel's techniques, it gives one digit from the solution and carries on.
+
 ## 4.2.0
 
 - **Difficulty badge in the title bar**, on sudoku.com's own scale: 1–2 Easy · 3–4 Medium · 5–6 Hard · 7–8 Expert · 9–10 Extreme. It weighs the work left to finish the grid (always taking the easiest step) and the hardest technique needed, calibrated on about 130 sudoku.com puzzles; forcing chains or beyond is 10/10. It goes down as you fill the grid, reads 0/10 once solved, and its tooltip names the matching level and the hardest technique. Not shown on Killer puzzles.

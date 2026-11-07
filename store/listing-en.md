@@ -24,7 +24,7 @@ THE PANEL, FROM THE LEAST HELP TO THE MOST
 
 3 · Fill in — answers typed for you
 • ⚡ Fill singles types the digit into every cell where only one fits.
-• 🏁 Finish grid types the whole solution when you're stuck for good (click twice to confirm).
+• 🏁 Finish grid types the rest of the solution when you're stuck for good, one digit at a time in the order you could find it, simplest techniques first (click twice to confirm).
 
 4 · Advanced — all hints at once (folded until you open it)
 • How many hints of each technique exist right now; open one to see them on the grid, and hover a hint to see why it works and which earlier hints it relies on.

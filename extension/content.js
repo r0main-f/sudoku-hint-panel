@@ -756,6 +756,51 @@
     }
     return done(grid.includes(0) ? 10 : tech);
   }
+  // The order a person could solve the rest in: always the easiest move first,
+  // one digit at a time — the only place for a digit in a box, then in a row
+  // or column, then the only digit left in a cell; when none is left, the
+  // easiest technique that erases candidates (pointing, pairs, chains…) and
+  // back to singles. Returns the digits in that order, each with the hardest
+  // technique it needed. When nothing the panel knows applies, one digit comes
+  // from the solution (in the cell where the fewest fit) and it carries on.
+  function solvePath(grid0) {
+    const sol = solveGrid(grid0);
+    if (!sol) return null;
+    const grid = grid0.slice(), cand = candidates(grid), steps = [];
+    const put = (i, d) => { grid[i] = d; cand[i] = null; for (const p of PEERS[i]) if (cand[p]) cand[p].delete(d); };
+    const hiddenIn = (units) => {
+      for (const u of units) for (let d = 1; d <= 9; d++) {
+        if (u.cells.some((j) => grid[j] === d)) continue;
+        const w = u.cells.filter((j) => cand[j] && cand[j].has(d));
+        if (w.length === 1) return [w[0], d];
+      }
+      return null;
+    };
+    let need = 0, given = 0;   // hardest erasing technique used since the last digit; digits given from the solution
+    for (let guard = 0; guard < 600 && grid.includes(0); guard++) {
+      let mv = hiddenIn(UNITS.slice(18)), lvl = 1;
+      if (!mv) { mv = hiddenIn(UNITS.slice(0, 18)); lvl = 2; }
+      if (!mv) { const i = cand.findIndex((c) => c && c.size === 1); if (i >= 0) { mv = [i, [...cand[i]][0]]; lvl = 3; } }
+      if (mv) {
+        if (mv[1] !== sol[mv[0]]) break;   // can't happen with a unique solution; stay safe
+        put(mv[0], mv[1]); steps.push({ i: mv[0], d: mv[1], tech: Math.max(lvl, need) }); need = 0;
+        continue;
+      }
+      let erased = false;
+      for (const [level, find] of GRADE_STEPS) {
+        for (const g of find(cand, grid)) for (const [j, ds] of g.elims) for (const d of ds) if (cand[j] && cand[j].has(d) && d !== sol[j]) { cand[j].delete(d); erased = true; }
+        if (erased) { need = Math.max(need, level); break; }
+      }
+      if (!erased) {   // beyond the panel's techniques: give one digit (where the fewest fit), then carry on
+        let i = -1;
+        for (let j = 0; j < 81; j++) if (!grid[j] && (i < 0 || cand[j].size < cand[i].size)) i = j;
+        put(i, sol[i]); steps.push({ i, d: sol[i], tech: 10 }); need = 0; given++;
+      }
+    }
+    for (let i = 0; i < 81; i++) if (!grid[i]) { steps.push({ i, d: sol[i], tech: 10 }); given++; }
+    return { steps, unreached: given };
+  }
+
   function anySingle(cand, grid) {
     for (let i = 0; i < 81; i++) if (cand[i] && cand[i].size === 1) return true;
     for (const u of UNITS) for (let d = 1; d <= 9; d++) {
@@ -1091,22 +1136,23 @@
     status(`Filled ${placed} cell${placed === 1 ? '' : 's'}.` + (next ? ` ${next} new single${next === 1 ? '' : 's'} — click again.` : ''), 'ok');
   }
 
-  // Finish grid: type the solution into every empty cell (asks for a second click).
+  // Finish grid: type the rest of the solution, one digit at a time, in the
+  // order a person could find it — simplest techniques first (asks for a second click).
   async function finishGrid() {
     const st = readState();
     if (st.error) return status(st.error, 'err');
     if (pageInfo().type === 'killer') return status('Finish grid isn’t available for Killer puzzles (cages aren’t used).', 'warn');
     if (st.mistake.some(Boolean)) return status('There is a wrong digit on the board — fix it first.', 'err');
-    const sol = solveGrid(st.grid);
-    if (!sol) return status('No solution fits the digits on the board — check for a mistake.', 'err');
-    const todo = [];
-    for (let i = 0; i < 81; i++) if (!st.grid[i]) todo.push([i, sol[i]]);
-    if (!todo.length) return status('The grid is already complete.', 'ok');
+    if (!st.grid.includes(0)) return status('The grid is already complete.', 'ok');
+    const path = solvePath(st.grid);
+    if (!path) return status('No solution fits the digits on the board — check for a mistake.', 'err');
+    const todo = path.steps;
 
     const wasOn = pencilOn();
     if (!(await setPencil(false))) return status('Could not switch pencil mode off.', 'err');
-    let first = true;
-    for (const [i, d] of todo) {
+    let first = true, hardest = 0;
+    for (const { i, d, tech } of todo) {
+      status(`Finishing: ${TECH_NAMES[tech]}…`, 'ok');
       selectCell(i);
       await sleep(STEP_DELAY);
       const before = first ? readState().raw : null;
@@ -1116,10 +1162,12 @@
         const now = await waitForChange(before);
         if (!now || now.grid[i] !== d) { await setPencil(wasOn); return status('The game did not accept the input — stopped.', 'err'); }
       }
+      hardest = Math.max(hardest, tech);
       await sleep(STEP_DELAY);
     }
     await setPencil(wasOn);
-    status(`Finished: ${todo.length} cell${todo.length === 1 ? '' : 's'} filled.`, 'ok');
+    status(`Finished: ${todo.length} digit${todo.length === 1 ? '' : 's'}, simplest first — hardest step: ${TECH_NAMES[hardest]}.`
+      + (path.unreached ? ` ${path.unreached} of them needed more than the panel's techniques and came from the solution.` : ''), 'ok');
   }
   let finishArmed = 0;   // first click arms the button, a second click within 4 s runs it
   function finishClick(btn) {
@@ -1802,7 +1850,7 @@
       <div class="sdkh-sec"><b>3 · Fill in</b><small>answers typed for you</small></div>
       <div class="sdkh-actions">
         <button data-act="fill" title="Alt+Shift+F — type the digit into every single-option cell">⚡ Fill singles</button>
-        <button data-act="finish" class="sdkh-finish-btn" title="Type the solution into every empty cell (click twice to confirm)">🏁 Finish grid</button>
+        <button data-act="finish" class="sdkh-finish-btn" title="Types the rest of the solution one digit at a time, in the order you could find it: simplest techniques first (click twice to confirm)">🏁 Finish grid</button>
       </div>
       <div class="sdkh-sec sdkh-sec-adv" title="Show / hide all the hint categories"><b><span class="sdkh-fold">▸</span> 4 · Advanced</b><small>all hints at once</small><i class="sdkh-adv-count"></i></div>
       <div class="sdkh-summary"></div>

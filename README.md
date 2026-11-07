@@ -58,7 +58,7 @@ The panel is laid out by how much help you want, from least to most. **4 · Adva
 | **2 · Step by step assist** — one hint at a time | 🧭 Assist | Alt+Shift+A | One hint at a time, easiest first — where, then what, then why. Alt+Shift+A again reveals the next level. |
 | | ☝ ONE single | Alt+Shift+O | Shows one single option (easiest first); click again for another. |
 | **3 · Fill in** — answers typed for you | ⚡ Fill singles | Alt+Shift+F | Types the digit into every single-option cell. |
-| | 🏁 Finish grid | — | Types the solution into every empty cell, for when you're stuck for good. Click twice to confirm. |
+| | 🏁 Finish grid | — | Types the rest of the solution one digit at a time, in the order you could find it: simplest techniques first. For when you're stuck for good. Click twice to confirm. |
 | **4 · Advanced** — all hints at once | Category titles | Alt+Shift+H / L / P / K | Show or hide singles / pointing / pairs & triples / chains on the grid; **Expert techniques** unfolds the rest. |
 
 **Difficulty badge.** The title bar shows how hard what's left of the grid is, on sudoku.com's own scale: 1–2 Easy · 3–4 Medium · 5–6 Hard · 7–8 Expert · 9–10 Extreme. It counts the work needed to finish from here, always taking the easiest step, and how hard the hardest step is (calibrated on about 130 sudoku.com puzzles; a grid that needs forcing chains is 10/10). It goes down as you fill the grid and reads 0/10 when it's solved. Hover it for the matching level and the hardest technique.

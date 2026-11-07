@@ -24,7 +24,7 @@ LE PANNEAU, DU MOINS D'AIDE AU PLUS
 
 3 · Remplir — réponses tapées pour vous
 • ⚡ Fill singles inscrit le chiffre dans chaque case où un seul est possible.
-• 🏁 Finish grid inscrit toute la solution quand vous êtes vraiment bloqué (deux clics pour confirmer).
+• 🏁 Finish grid inscrit le reste de la solution quand vous êtes vraiment bloqué, un chiffre à la fois dans l'ordre où vous pourriez le trouver, des techniques les plus simples aux plus complexes (deux clics pour confirmer).
 
 4 · Avancé — tous les indices d'un coup (replié jusqu'à ce que vous l'ouvriez)
 • Combien d'indices existent pour chaque technique en ce moment ; ouvrez-en une pour les voir sur la grille, et survolez un indice pour voir pourquoi il marche et de quels indices précédents il dépend.

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Sudoku Hint Panel",
   "short_name": "Sudoku Hints",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "Learn sudoku on sudoku.com: from filling notes to one hint at a time with its reasoning — at the level of help you choose.",
   "minimum_chrome_version": "111",
   "icons": {

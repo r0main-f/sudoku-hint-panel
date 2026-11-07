@@ -33,13 +33,13 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "Release v$VERSION already exists: nothing to do."
+            echo "Release v$VERSION already exists: only the store upload runs, and only when started by hand."
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build the zip
-        if: steps.v.outputs.exists == 'false'
+        if: steps.v.outputs.exists == 'false' || (github.event_name == 'workflow_dispatch' && inputs.store)
         run: |
           cd extension
           zip -qr "../sudoku-hint-panel-${{ steps.v.outputs.version }}.zip" . -x '.DS_Store'
@@ -70,7 +70,8 @@ jobs:
             --notes-file notes.md
 
       - name: Upload to the Chrome Web Store and submit for review
-        if: steps.v.outputs.exists == 'false' && (github.event_name == 'push' || inputs.store)
+        # also re-runnable by hand for an existing release (e.g. after fixing the store account)
+        if: (steps.v.outputs.exists == 'false' && github.event_name == 'push') || (github.event_name == 'workflow_dispatch' && inputs.store)
         env:
           EXTENSION_ID: bhhgadcdhbondeacamocgieacckjbcon
           PUBLISHER_ID: ${{ secrets.CWS_PUBLISHER_ID }}

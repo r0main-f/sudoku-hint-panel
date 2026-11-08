@@ -18,8 +18,9 @@ release and submit the zip to the Chrome Web Store, so get these ready first:
 
 1. **Update the store screenshots and marquee** so they show the current panel:
    `store/screenshot-1…5-*.png` (1280×800) and `store/marquee-promo-1400x560.png`.
-   Regenerate them from the current `extension/` code — never ship a release
-   with screenshots from an older version.
+   Regenerate them from the current `extension/` code with `python3 store/tools/screenshots.py`
+   (Playwright + Chromium) — never ship a release with screenshots from an older version.
+   Screenshot 4 is the "any grid" page; the others show the sudoku.com panel.
 2. `node tests/run.js` must pass.
 3. Add the `## x.y.z` section to `CHANGELOG.md` (it becomes the release notes).
 4. Update `README.md` and `store/listing-en.md` / `listing-fr.md` if features changed.

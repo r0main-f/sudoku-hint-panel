@@ -21,6 +21,8 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 
 Click the extension's toolbar button to open **any grid**: paste a sudoku from anywhere (a site, a book, a newspaper) or type it, in any size — 4×4, 6×6, 8×8, 9×9, 12×12 or 16×16 (1–9 then A–G, hex 0–F, or numbers). The same help works there: notes and optimized notes, step by step assist (where → what → why, then Apply), Fill singles, Finish grid in solving order, and every hint by technique. It also checks the grid: a digit twice in a row, column or box, no solution, or several solutions. The page runs entirely in your browser and keeps your last grid on your device.
 
+![Any grid, up to 16×16](store/screenshot-4-any-grid.png)
+
 ## Techniques
 
 Listed from the simplest help to the most advanced, as in the panel. A technique is only used when everything simpler finds nothing (and, from Chains on, only when no single is left to place), so the hints stay as easy as the grid allows.

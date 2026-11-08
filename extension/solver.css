@@ -94,3 +94,4 @@ kbd { font: 11px ui-monospace, monospace; padding: 0 4px; border: 1px solid #ccd
 .busy .board { opacity: .85; }
 @media (max-width: 1000px) { .board { --size: min(94vw, 640px); } .board.big { --size: min(96vw, 860px); } .panel { flex: 1 1 100%; } }
 .board.big .notes { font-size: calc(var(--size) / var(--n) / var(--bc) * .74); }
+.cell:has(.no) .notes { opacity: .3; }   /* a ruled-out cell: the × reads over its notes */

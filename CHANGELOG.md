@@ -4,6 +4,11 @@ Each `## x.y.z` section below becomes the notes of the GitHub release `vx.y.z`
 (see `.github/workflows/release.yml`). Add a section here before bumping the
 version in `extension/manifest.json`.
 
+## Unreleased
+
+- The solving engine is now its own file (`engine.js`), for grids of any size (4×4 up to 16×16), ready for other sudoku sites and for 16×16 puzzles. The panel on sudoku.com behaves exactly as before: tested on about 800 boards and with every UI test.
+- Engine tests (`node tests/run.js`), run on every push.
+
 ## 4.3.0
 
 - **🏁 Finish grid solves like a person**: it types the rest of the solution one digit at a time, in the order you could find it — the only place for a digit in a box first, then in a row or column, then the only digit left in a cell, and the easiest technique that unlocks the next digit when no single is left. If a grid needs more than the panel's techniques, it gives one digit from the solution and carries on.

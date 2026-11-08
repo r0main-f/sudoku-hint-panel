@@ -81,10 +81,17 @@ Works on Classic and Killer games, the daily challenge and special editions (e.g
 sudoku.com draws its grid on a canvas, but keeps the live game (digits, notes, mistakes) in the page's local storage and loads each new puzzle from its own API. The extension:
 
 - `page-bridge.js` (runs in the page) notices when the game saves a move or loads a puzzle, so hints refresh instantly;
-- `content.js` reads that state, computes candidates and the techniques above (chained until nothing new appears), and draws a light overlay and the panel;
+- `engine.js` is the solver: candidates, every technique above (chained until nothing new appears), the difficulty grade and the Finish grid order. It has no page code, works for any grid size (4×4, 6×6, 9×9, 12×12, 16×16…), and is what the tests run;
+- `content.js` reads the game state, asks the engine, and draws a light overlay and the panel;
 - the action buttons play through the same inputs a player uses — a click on the cell, the pencil toggle, a digit key — so everything stays in the game's undo history.
 
 Notes you take are used once every empty cell has some (for example after **Candidates**); before that, hints come from the placed digits only, so a few reminder notes never cause a wrong hint. If a note was erased by mistake (it rules out the digit that really goes there), the panel says so, shows where when you hover the warning, and ignores your notes until it's fixed — so a slip never turns into a wrong hint. When an explanation relies on a note you erased yourself, that cell shows ✎ instead of ×.
+
+## Tests
+
+`node tests/run.js` (Node 18+, no install) runs the engine tests, also on every push (GitHub Actions):
+- **9×9 continuity** — everything the panel can show (hints, singles, steps, notes checks, grade, Finish grid order, each technique) is fingerprinted on about 800 boards — real sudoku.com puzzles at every level, part-filled, with notes, with a note erased by mistake, and real played games — and must match the recorded fingerprints exactly;
+- **every grid size** — 4×4, 6×6 (both box shapes), 9×9, 12×12 and 16×16 puzzles are generated and solved like a player: no hint may contradict the solution, every grid must be finished, and Finish grid's order must be valid.
 
 ## Privacy
 

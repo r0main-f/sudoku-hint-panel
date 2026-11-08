@@ -20,7 +20,7 @@
     },
     {
       "matches": ["https://sudoku.com/*", "https://www.sudoku.com/*"],
-      "js": ["content.js"],
+      "js": ["engine.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
     }

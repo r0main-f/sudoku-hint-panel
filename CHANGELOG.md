@@ -4,7 +4,9 @@ Each `## x.y.z` section below becomes the notes of the GitHub release `vx.y.z`
 (see `.github/workflows/release.yml`). Add a section here before bumping the
 version in `extension/manifest.json`.
 
-## Unreleased
+## 5.0.0
+
+Sudoku Hint Panel goes beyond sudoku.com: the same help on any grid, from 4×4 to 16×16.
 
 - **Any grid — 4×4 to 16×16.** The toolbar button opens a page where you paste or type any sudoku (4×4, 6×6, 8×8, 9×9, 12×12, 16×16) and get the same help: notes, step by step assist, Fill singles, Finish grid in solving order, every hint by technique, and a check of the grid (duplicates, no solution, several solutions).
 - The solving engine is now its own file (`engine.js`), for grids of any size (4×4 up to 16×16), ready for other sudoku sites and for 16×16 puzzles. The panel on sudoku.com behaves exactly as before: tested on about 800 boards and with every UI test.

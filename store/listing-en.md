@@ -37,6 +37,9 @@ TECHNIQUES, FROM THE SIMPLEST
 • Expert techniques, folded away until you want them: quads, X-wing & fish (swordfish, jellyfish), wings (XY, XYZ, W), unique rectangles, long chains (X- and XY-chains) and forcing chains.
 A harder technique is only used when everything simpler finds nothing, so hints stay as easy as the grid allows. Hints that only appear once earlier ones are applied are found too, tagged "step 2, step 3…".
 
+ANY GRID — 4×4 TO 16×16
+• Click the toolbar button to paste or type any sudoku — from another site, a book or a newspaper — in any size: 4×4, 6×6, 8×8, 9×9, 12×12 or 16×16. The same help works there: notes, step by step assist, Fill singles, Finish grid and every hint by technique, plus a check for duplicates and for a missing or second solution.
+
 GOOD TO KNOW
 • A difficulty badge in the title bar rates what's left of the grid on sudoku.com's own scale (1–2 Easy · 3–4 Medium · 5–6 Hard · 7–8 Expert · 9–10 Extreme) and goes down as you fill it, to 0/10 once solved.
 • Works on Classic and Killer games, the daily challenge and special editions (e.g. Storybook).

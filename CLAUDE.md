@@ -4,10 +4,12 @@
 - `extension/engine.js` — the solver, for any grid size (`createSudokuEngine(boxRows, boxCols)`); no DOM.
 - `extension/content.js` — sudoku.com: reads the game, draws the panel and overlay, uses the engine as 9×9.
 - `extension/page-bridge.js` — runs in the page; signals saves and newly loaded puzzles.
+- `extension/explain.js` — what each hint says and the assist order (`createExplainer(engine)`); no DOM.
+- `extension/solver.html|js|css` + `solver-worker.js` — the "any grid" page (4×4 … 16×16), opened by the toolbar button (`background.js`).
 
 ## Tests — run before every commit that touches the engine
-`node tests/run.js`: the 9×9 continuity fingerprints (`tests/golden-9x9.js`) and all grid
-sizes (`tests/sizes.js`). If a fingerprint changes on purpose, re-record with
+`node tests/run.js`: the 9×9 continuity fingerprints (`tests/golden-9x9.js` for the engine,
+`tests/explain-9x9.js` for hint texts and assist order) and all grid sizes (`tests/sizes.js`). If a fingerprint changes on purpose, re-record with
 `node tests/golden-9x9.js --update` and say why in the commit.
 
 ## Every release (any version bump in `extension/manifest.json`)

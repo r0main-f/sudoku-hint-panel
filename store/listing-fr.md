@@ -37,6 +37,9 @@ LES TECHNIQUES, DE LA PLUS SIMPLE
 • Techniques expertes, repliées jusqu'à ce que vous en ayez besoin : quads, X-wing et poissons (swordfish, jellyfish), wings (XY, XYZ, W), rectangles uniques, longues chaînes (X et XY) et chaînes forcées.
 Une technique plus difficile n'est utilisée que quand rien de plus simple ne trouve rien, pour que les indices restent aussi simples que la grille le permet. Les indices qui n'apparaissent qu'après en avoir appliqué d'autres sont aussi trouvés, marqués « step 2, step 3… ».
 
+N'IMPORTE QUELLE GRILLE — DE 4×4 À 16×16
+• Cliquez sur le bouton de l'extension pour coller ou taper n'importe quel sudoku — d'un autre site, d'un livre ou d'un journal — de toute taille : 4×4, 6×6, 8×8, 9×9, 12×12 ou 16×16. La même aide y fonctionne : notes, assistant pas à pas, Fill singles, Finish grid et tous les indices par technique, avec une vérification des doublons et d'une solution manquante ou multiple.
+
 BON À SAVOIR
 • Un badge de difficulté dans la barre de titre évalue ce qui reste de la grille sur l'échelle de sudoku.com (1–2 Facile · 3–4 Moyen · 5–6 Difficile · 7–8 Expert · 9–10 Extrême) et baisse à mesure que vous la remplissez, jusqu'à 0/10 une fois résolue.
 • Fonctionne en Classic et Killer, sur le défi quotidien et les éditions spéciales (ex. Storybook).

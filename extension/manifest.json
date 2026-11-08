@@ -11,17 +11,41 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "action": {
+    "default_title": "Sudoku Hint Panel — help on any grid (4×4 to 16×16)",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": ["https://sudoku.com/*", "https://www.sudoku.com/*"],
-      "js": ["page-bridge.js"],
+      "matches": [
+        "https://sudoku.com/*",
+        "https://www.sudoku.com/*"
+      ],
+      "js": [
+        "page-bridge.js"
+      ],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": ["https://sudoku.com/*", "https://www.sudoku.com/*"],
-      "js": ["engine.js", "content.js"],
-      "css": ["content.css"],
+      "matches": [
+        "https://sudoku.com/*",
+        "https://www.sudoku.com/*"
+      ],
+      "js": [
+        "engine.js",
+        "explain.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
       "run_at": "document_idle"
     }
   ]

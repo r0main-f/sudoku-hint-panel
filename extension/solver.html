@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sudoku Hint Panel — any grid</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="solver.css">
+</head>
+<body>
+  <header>
+    <img src="icons/icon48.png" alt="" width="28" height="28">
+    <h1>Sudoku Hint Panel <span>· any grid</span></h1>
+    <b class="grade" hidden></b>
+  </header>
+  <main>
+    <section class="board-wrap">
+      <div class="board" id="board" tabindex="0" aria-label="Sudoku grid"></div>
+      <p class="legend" id="legend"></p>
+    </section>
+
+    <aside class="panel">
+      <div class="sec"><b>Grid</b><small>paste, type, or start empty</small></div>
+      <div class="row">
+        <label>Size
+          <select id="size">
+            <option value="2x2">4×4</option>
+            <option value="2x3">6×6 (boxes 2×3)</option>
+            <option value="3x2">6×6 (boxes 3×2)</option>
+            <option value="2x4">8×8 (boxes 2×4)</option>
+            <option value="3x3" selected>9×9</option>
+            <option value="3x4">12×12 (boxes 3×4)</option>
+            <option value="4x4">16×16</option>
+          </select>
+        </label>
+        <label id="symbols-wrap" hidden>Symbols
+          <select id="symbols">
+            <option value="1G">1–9, A–G</option>
+            <option value="0F">0–9, A–F</option>
+            <option value="num">1–16</option>
+          </select>
+        </label>
+      </div>
+      <textarea id="paste" rows="4" spellcheck="false"
+        placeholder="Paste a grid: one character per cell, . or 0 for an empty cell — e.g. 4.....8.5.3.......7......2.....6.....8.4......1....... (spaces, | and line breaks are ignored; 16×16: 1–9 A–G, or hex 0–F with . for empty, or numbers with spaces)"></textarea>
+      <div class="row">
+        <button id="load" class="main">Load</button>
+        <button id="empty">Empty grid</button>
+        <button id="undo" title="Undo (Ctrl+Z)">↶ Undo</button>
+        <button id="copy" title="Copy the grid as text">Copy</button>
+      </div>
+      <p class="check" id="check"></p>
+
+      <div class="sec"><b>1 · Notes</b><small>no answers given</small></div>
+      <div class="row">
+        <button data-act="cands" title="Write every possible digit in every empty cell">✎ Candidates</button>
+        <button data-act="optimized" title="Candidates already narrowed by pairs, triples, pointing and chains">✎ Optimized</button>
+        <button data-act="clearnotes" title="Erase all notes">Clear notes</button>
+      </div>
+
+      <div class="sec"><b>2 · Step by step assist</b><small>one hint at a time</small></div>
+      <div class="row">
+        <button data-act="assist" class="toggle" title="The easiest hint left: where to look, then what, then why">🧭 Assist</button>
+        <button data-act="one" class="toggle" title="Show one next move">☝ ONE single</button>
+      </div>
+      <div class="card" id="card" hidden></div>
+
+      <div class="sec"><b>3 · Fill in</b><small>answers typed for you</small></div>
+      <div class="row">
+        <button data-act="singles" title="Type the digit in every cell where only one fits">⚡ Fill singles</button>
+        <button data-act="finish" class="finish" title="Type the rest of the solution, one digit at a time in the order you could find it (click twice)">🏁 Finish grid</button>
+      </div>
+
+      <details class="sec adv" id="adv">
+        <summary><b>4 · Advanced</b><small>all hints at once</small></summary>
+        <ul id="cats"></ul>
+      </details>
+      <p class="status" id="status"></p>
+      <p class="keys">Click a cell and type a digit · <kbd>Shift</kbd>+digit toggles a note · <kbd>Del</kbd> erases · arrows move</p>
+    </aside>
+  </main>
+  <script src="engine.js"></script>
+  <script src="explain.js"></script>
+  <script src="solver.js"></script>
+</body>
+</html>

@@ -11,7 +11,7 @@ Jeux  *(alternative : Éducation)*
 
 ## Description
 
-Sudoku Hint Panel est un compagnon d'apprentissage pour les grilles de sudoku.com. Il ne résout jamais la grille à votre place sans que vous le demandiez : il vous dit si une étape est possible, quelle technique elle utilise et où elle se trouve — au niveau d'aide que vous choisissez, de la simple prise de notes jusqu'au raisonnement complet du prochain coup.
+Sudoku Hint Panel est un compagnon d'apprentissage pour les grilles de sudoku.com — ainsi que du New York Times, de Web Sudoku, LiveSudoku, sudoku-online.org et sudokuonline.io, ou de toute grille que vous collez. Il ne résout jamais la grille à votre place sans que vous le demandiez : il vous dit si une étape est possible, quelle technique elle utilise et où elle se trouve — au niveau d'aide que vous choisissez, de la simple prise de notes jusqu'au raisonnement complet du prochain coup.
 
 LE PANNEAU, DU MOINS D'AIDE AU PLUS
 1 · Notes — aucune réponse donnée
@@ -36,6 +36,9 @@ LES TECHNIQUES, DE LA PLUS SIMPLE
 • Chaînes — là où un chiffre n'a que deux places, les cases reliées alternent entre deux couleurs, et l'une des couleurs porte tous ces chiffres.
 • Techniques expertes, repliées jusqu'à ce que vous en ayez besoin : quads, X-wing et poissons (swordfish, jellyfish), wings (XY, XYZ, W), rectangles uniques, longues chaînes (X et XY) et chaînes forcées.
 Une technique plus difficile n'est utilisée que quand rien de plus simple ne trouve rien, pour que les indices restent aussi simples que la grille le permet. Les indices qui n'apparaissent qu'après en avoir appliqué d'autres sont aussi trouvés, marqués « step 2, step 3… ».
+
+SUR D'AUTRES SITES DE SUDOKU AUSSI
+• Le même panneau sur The New York Times, Web Sudoku, LiveSudoku, sudoku-online.org et sudokuonline.io : il apparaît quand une grille est à l'écran, avec la même aide et les chiffres tapés par les commandes du site.
 
 N'IMPORTE QUELLE GRILLE — DE 4×4 À 16×16
 • Cliquez sur le bouton de l'extension pour coller ou taper n'importe quel sudoku — d'un autre site, d'un livre ou d'un journal — de toute taille : 4×4, 6×6, 8×8, 9×9, 12×12 ou 16×16. La même aide y fonctionne : notes, assistant pas à pas, Fill singles, Finish grid et tous les indices par technique, avec une vérification des doublons et d'une solution manquante ou multiple.

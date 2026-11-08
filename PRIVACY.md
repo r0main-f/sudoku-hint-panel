@@ -10,7 +10,9 @@ Sudoku Hint Panel does **not** collect, transmit, sell or share any personal or 
 
 **What it sends.** Nothing. The extension makes no network requests of its own, includes no analytics, and loads no remote code.
 
-**Permissions.** Its scripts run only on `https://sudoku.com/*` and `https://www.sudoku.com/*`, plus its own "any grid" page; it requests no other browser permissions.
+**Other sudoku sites.** On the sudoku pages of The New York Times, Web Sudoku, LiveSudoku, sudoku-online.org and sudokuonline.io, it reads the grid on screen (and, on the NYT, the candidates the game saves in your browser) only to compute hints in your browser. The panel's position there is kept in that site's local storage on your device.
+
+**Permissions.** Its scripts run only on `https://sudoku.com/*`, `https://www.sudoku.com/*`, the sudoku pages of the sites above, and its own "any grid" page; it requests no other browser permissions.
 
 **Contact.** Questions or concerns: open an issue at https://github.com/r0main-f/sudoku-hint-panel/issues.
 

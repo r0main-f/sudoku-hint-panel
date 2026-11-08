@@ -4,14 +4,14 @@
 Sudoku Hint Panel
 
 ## Summary (max 132 — the store's "short description")
-Learn sudoku on sudoku.com: from filling notes to one hint at a time with its reasoning — at the level of help you choose.
+Learn sudoku on sudoku.com, NYT, Web Sudoku and more: from notes to one hint at a time with its reasoning, at your level.
 
 ## Category
 Games  *(alternative: Education)*
 
 ## Description
 
-Sudoku Hint Panel is a learning companion for the puzzles on sudoku.com. It never solves the grid for you unless you ask: it tells you whether a step is available, which technique it uses and where it is — at the level of help you choose, from just filling your notes to the full reasoning of the next move.
+Sudoku Hint Panel is a learning companion for the puzzles on sudoku.com — and on The New York Times, Web Sudoku, LiveSudoku, sudoku-online.org and sudokuonline.io, or any grid you paste. It never solves the grid for you unless you ask: it tells you whether a step is available, which technique it uses and where it is — at the level of help you choose, from just filling your notes to the full reasoning of the next move.
 
 THE PANEL, FROM THE LEAST HELP TO THE MOST
 1 · Notes — no answers given
@@ -36,6 +36,9 @@ TECHNIQUES, FROM THE SIMPLEST
 • Chains — where a digit has only two places, linked cells alternate between two colours, and one colour holds all of that digit.
 • Expert techniques, folded away until you want them: quads, X-wing & fish (swordfish, jellyfish), wings (XY, XYZ, W), unique rectangles, long chains (X- and XY-chains) and forcing chains.
 A harder technique is only used when everything simpler finds nothing, so hints stay as easy as the grid allows. Hints that only appear once earlier ones are applied are found too, tagged "step 2, step 3…".
+
+ON OTHER SUDOKU SITES TOO
+• The same panel on The New York Times, Web Sudoku, LiveSudoku, sudoku-online.org and sudokuonline.io: it appears when a grid is on screen, with the same help and the digits typed through the site's own controls.
 
 ANY GRID — 4×4 TO 16×16
 • Click the toolbar button to paste or type any sudoku — from another site, a book or a newspaper — in any size: 4×4, 6×6, 8×8, 9×9, 12×12 or 16×16. The same help works there: notes, step by step assist, Fill singles, Finish grid and every hint by technique, plus a check for duplicates and for a missing or second solution.

@@ -12,3 +12,12 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - run: node tests/run.js
+  sites:
+    # the panel on the other sudoku sites, end to end in Chromium with the extension loaded
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - run: python tests/browser/test_sites.py

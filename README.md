@@ -17,6 +17,10 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 
 ![Step by step assist](store/screenshot-2-assist.png)
 
+## Other sudoku sites
+
+The same panel works on the most visited sudoku sites after sudoku.com: **The New York Times** (nytimes.com/puzzles/sudoku), **Web Sudoku**, **LiveSudoku**, **sudoku-online.org** and **sudokuonline.io**. It appears when a grid is on screen: difficulty badge, candidates drawn over the grid, step by step assist (where → what → why, then Apply), ONE single, Fill singles, Finish grid in solving order, and every hint by technique. Digits are typed through the site's own controls, so they count as your moves there. Notes are read where the site keeps them (NYT, sudokuonline.io); elsewhere, Apply on a pair or pointing hint keeps the erased notes in the panel.
+
 ## Any grid — 4×4 to 16×16
 
 Click the extension's toolbar button to open **any grid**: paste a sudoku from anywhere (a site, a book, a newspaper) or type it, in any size — 4×4, 6×6, 8×8, 9×9, 12×12 or 16×16 (1–9 then A–G, hex 0–F, or numbers). The same help works there: notes and optimized notes, step by step assist (where → what → why, then Apply), Fill singles, Finish grid in solving order, and every hint by technique. It also checks the grid: a digit twice in a row, column or box, no solution, or several solutions. The page runs entirely in your browser and keeps your last grid on your device.
@@ -90,6 +94,7 @@ sudoku.com draws its grid on a canvas, but keeps the live game (digits, notes, m
 - `engine.js` is the solver: candidates, every technique above (chained until nothing new appears), the difficulty grade and the Finish grid order. It has no page code, works for any grid size (4×4, 6×6, 9×9, 12×12, 16×16…), and is what the tests run;
 - `explain.js` holds what each hint says (where to look, what, why) and the assist order;
 - `content.js` reads the game state, asks the engine, and draws a light overlay and the panel;
+- `sites.js` holds one small adapter per other site (read the grid, type a digit), `site-panel.js` the panel and overlay there (the panel in the page, the overlay in the frame that shows the grid), and `deco.js` what to draw for a hint, shared with the *any grid* page;
 - `solver.html` / `solver.js` is the *any grid* page, with the engine in a background thread (`solver-worker.js`); `background.js` opens it from the toolbar button;
 - the action buttons play through the same inputs a player uses — a click on the cell, the pencil toggle, a digit key — so everything stays in the game's undo history.
 
@@ -100,6 +105,7 @@ Notes you take are used once every empty cell has some (for example after **Cand
 `node tests/run.js` (Node 18+, no install) runs the engine tests, also on every push (GitHub Actions):
 - **9×9 continuity** — everything the panel can show (hints, singles, steps, notes checks, grade, Finish grid order, each technique) is fingerprinted on about 800 boards — real sudoku.com puzzles at every level, part-filled, with notes, with a note erased by mistake, and real played games — and must match the recorded fingerprints exactly;
 - **hint texts and assist order** — the same boards, fingerprinted for every text the panel shows and the order Assist follows;
+- **other sites** — `python3 tests/browser/test_sites.py` loads the extension in Chromium and plays each supported site's stand-in page (same DOM and controls as the real site) end to end: panel, badge, assist, Apply, Finish grid;
 - **every grid size** — 4×4, 6×6 (both box shapes), 9×9, 12×12 and 16×16 puzzles are generated and solved like a player: no hint may contradict the solution, every grid must be finished, and Finish grid's order must be valid.
 
 ## Privacy

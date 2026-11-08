@@ -1,10 +1,10 @@
 # Answers for the "Privacy practices" tab of the Developer Dashboard
 
 ## Single purpose (required)
-Shows sudoku solving hints (candidates, single options, pairs/triples, pointing, chains and harder techniques, one at a time or all at once) in a panel on sudoku.com puzzle pages — and, from the toolbar button, on any grid the player pastes or types (4×4 to 16×16) — so players can learn techniques at the level of help they choose.
+Shows sudoku solving hints (candidates, single options, pairs/triples, pointing, chains and harder techniques, one at a time or all at once) in a panel on sudoku.com puzzle pages and on the puzzle pages of a few other sudoku sites (The New York Times, Web Sudoku, LiveSudoku, sudoku-online.org, sudokuonline.io) — and, from the toolbar button, on any grid the player pastes or types (4×4 to 16×16) — so players can learn techniques at the level of help they choose.
 
 ## Permission justification
-The extension requests no API permissions. It declares content scripts for `https://sudoku.com/*` and `https://www.sudoku.com/*`, a toolbar button, and a small background script whose only job is to open the extension's own "any grid" page when that button is clicked.
+The extension requests no API permissions. It declares content scripts for `https://sudoku.com/*` and `https://www.sudoku.com/*`, for the sudoku pages of `nytimes.com/puzzles/sudoku`, `websudoku.com`, `livesudoku.com`, `sudoku-online.org` and `sudokuonline.io` (to read the grid on screen, draw the hints over it and type digits when the player asks), a toolbar button, and a small background script whose only job is to open the extension's own "any grid" page when that button is clicked.
 
 - **Host access to sudoku.com** — needed to read the current puzzle (which the site keeps in the page's local storage and loads from its own API), to draw the hint overlay on the grid, and to type notes or digits when the player clicks "Candidates", "Optimized", "Fill singles" or "Finish grid". No other site is accessed.
 - **Main-world script (`page-bridge.js`)** — runs in the page to notice the moment the game saves a move or loads a new puzzle, so hints update live. It reads data only; it does not send anything anywhere.

@@ -6,14 +6,12 @@
   const $ = (s) => document.querySelector(s);
   const boardEl = $('#board'), statusEl = $('#status'), checkEl = $('#check'), cardEl = $('#card'), legendEl = $('#legend');
   const gradeEl = $('.grade'), catsEl = $('#cats');
-  const PALETTE = ['#1565c0', '#8e24aa', '#ef6c00', '#00838f', '#6d4c41', '#37474f'];
-  const CHAIN_COLORS = ['#1565c0', '#ef6c00'], STEP_GREY = '#8a93a8';
   const CAT_NAMES = { single: 'Single options', pointing: 'Pointing', subsets: 'Pairs & triples', coloring: 'Chains',
     quads: 'Quads', fish: 'X-wing & fish', wings: 'Wings', ur: 'Unique rectangles', chains: 'Long chains', forcing: 'Forcing chains' };
   const MAIN_CATS = ['single', 'pointing', 'subsets', 'coloring'], EXPERT_CATS = ['quads', 'fish', 'wings', 'ur', 'chains', 'forcing'];
 
   // ------------------------------------------------------------ state
-  let BR = 3, BC = 3, E, X, N, NN;
+  let BR = 3, BC = 3, E, X, Dz, N, NN;
   let symMode = '1G';
   let grid = [], given = [], notes = [];
   const history = [];
@@ -39,6 +37,7 @@
     BR = br; BC = bc; N = BR * BC; NN = N * N;
     E = createSudokuEngine(BR, BC);
     X = createExplainer(E, { symbol: (d) => sym(d) });
+    Dz = createDecorator(E, X, (d) => sym(d));
     grid = Array(NN).fill(0); given = Array(NN).fill(false); notes = Array.from({ length: NN }, () => new Set());
     history.length = 0; sel = 0; res = null; view = null; resetAssist();
     $('#size').value = `${BR}x${BC}`;
@@ -141,7 +140,7 @@
     if (m.id !== reqId) return;   // an older grid
     document.body.classList.remove('busy');
     res = m;
-    if (res.a) { let k = 0; for (const c of E.GROUP_CATS) res.a[c].forEach((g) => { g.color = g.colorOf ? CHAIN_COLORS[0] : PALETTE[k++ % PALETTE.length]; }); }
+    if (res.a) Dz.colour(res.a);
     render();
   };
 
@@ -167,68 +166,11 @@
     return [(c + ((k % BC) + 0.5) / BC) / N, (r + (Math.floor(k / BC) + 0.5) / BR) / N];
   }
 
-  // What to draw, filled by the hint / single drawers, then painted by render().
-  function newDeco() {
-    return { cls: Array.from({ length: NN }, () => new Set()), show: Array.from({ length: NN }, () => new Set()),
-      note: Array.from({ length: NN }, () => new Map()), ghost: Array(NN).fill(0), frames: Array.from({ length: NN }, () => []), marks: Array.from({ length: NN }, () => []), links: [] };
-  }
-  const candOf = (i) => (res && res.a && res.a.cand[i]) || new Set();
-  function showDigits(D, i, ds) { if (!grid[i]) ds.forEach((d) => D.show[i].add(d)); }
-
-  function drawHint(D, g, level) {
-    const a = res.a, forcing = g.kind === 'forcing';
-    if (level >= 3) {
-      for (const n of X.shadeOf(g)) { const u = X.unitOf(n); if (u) u.cells.forEach((j) => { if (!g.cells.includes(j)) D.cls[j].add('unit'); }); }
-      for (const h of g.deps || []) for (const i of a.hints[h].cells) {
-        if (g.cells.includes(i)) continue;
-        D.frames[i].push({ dep: true });
-        const ds = X.hintDigitsIn(a.hints[h], i, a); showDigits(D, i, ds); ds.forEach((d) => D.note[i].set(d, ['hd', '#c62828']));
-      }
-    }
-    g.cells.forEach((i, n) => {
-      const col = g.colorOf ? CHAIN_COLORS[g.colorOf.get(i)] : forcing && n > 0 ? STEP_GREY : g.color || PALETTE[0];
-      D.frames[i].push({ c: col });
-      const ds = X.hintDigitsIn(g, i, a);
-      showDigits(D, i, ds);
-      ds.forEach((d) => D.note[i].set(d, ['hd', col]));
-    });
-    for (const [j, ds] of g.elims) { showDigits(D, j, ds); ds.forEach((d) => D.note[j].set(d, ['el'])); }
-    if (forcing && g.conflict != null) { D.frames[g.conflict].push({ conflict: true }); D.cls[g.conflict].add('dead'); }
-    for (const [p, q, ld] of g.links || []) D.links.push([p, q, ld || g.digits[0]]);
-  }
-  function drawSingle(D, sg, level) {
-    const a = res.a, st = { grid, notes };
-    D.cls[sg.i].add('single'); D.ghost[sg.i] = sg.d;
-    const units = sg.kind === 'naked' ? X.unitsOfCell(sg.i) : [X.unitOf(sg.unit)];
-    if (level < 3) { units.forEach((u) => u.cells.forEach((j) => { if (j !== sg.i) D.cls[j].add('unit'); })); return; }
-    units.forEach((u) => u.cells.forEach((j) => { if (j !== sg.i) D.cls[j].add('unit'); }));
-    const blocker = (name, d) => X.unitOf(name).cells.find((j) => grid[j] === d);
-    const used = new Set();
-    if (sg.kind === 'naked') {
-      for (let d = 1; d <= N; d++) {
-        if (d === sg.d) continue;
-        const w = X.whyNot(sg.i, d, st, a);
-        if (/^(row|column|box) /.test(w.key)) { const b = blocker(w.key, d); if (b != null) D.marks[b].push('ring'); }
-        else if (w.key.startsWith('h')) used.add(+w.key.slice(1));
-      }
-    } else {
-      const u = X.unitOf(sg.unit);
-      for (const j of u.cells) {
-        if (j === sg.i || grid[j]) continue;
-        const w = X.whyNot(j, sg.d, st, a, u.name);
-        if (/^(row|column|box) /.test(w.key)) { const b = blocker(w.key, sg.d); if (b != null) D.marks[b].push('ring'); D.marks[j].push('no'); }
-        else if (w.key.startsWith('h')) { D.marks[j].push('nohint'); used.add(+w.key.slice(1)); }
-        else D.marks[j].push('no');
-      }
-    }
-    for (const h of used) for (const i of a.hints[h].cells) {
-      D.frames[i].push({ dep: true });
-      const ds = X.hintDigitsIn(a.hints[h], i, a); showDigits(D, i, ds); ds.forEach((d) => D.note[i].set(d, ['hd', '#c62828']));
-    }
-  }
-  const singleWhy = (sg) => (sg.kind === 'naked'
-    ? `Every other digit is already in this cell’s row, column or box (blue circles)${sg.deps.length ? ', or was erased by an earlier hint (red)' : ''}, so only ${sym(sg.d)} fits.`
-    : `Every other empty cell of ${sg.unit} is ruled out (×): its row, column or box already holds a ${sym(sg.d)} (blue circles)${sg.deps.length ? ', or an earlier hint erased it (red)' : ''}. So the ${sym(sg.d)} goes here.`);
+  // What to draw (deco.js), then painted by paint().
+  const newDeco = () => Dz.blank();
+  const drawHint = (D, g, level) => Dz.hint(D, g, level, res.a, grid);
+  const drawSingle = (D, sg, level) => Dz.single(D, sg, level, res.a, { grid, notes });
+  const singleWhy = (sg) => Dz.singleWhy(sg);
 
   function render() {
     const D = newDeco();
@@ -470,7 +412,7 @@
   $('#undo').onclick = undo;
   $('#copy').onclick = async () => { try { await navigator.clipboard.writeText(gridText()); status('Grid copied as text.', 'ok'); } catch (err) { $('#paste').value = gridText(); status('Grid written in the box above.', 'ok'); } };
   $('#size').onchange = () => { const [br, bc] = $('#size').value.split('x').map(Number); setSize(br, bc); save(); request(); render(); };
-  $('#symbols').onchange = () => { symMode = $('#symbols').value; X = createExplainer(E, { symbol: (d) => sym(d) }); save(); render(); };
+  $('#symbols').onchange = () => { symMode = $('#symbols').value; save(); render(); };
 
   // the last grid, kept in this browser only
   function save() {

@@ -168,14 +168,17 @@
         const st = this.read();
         if (!st) return;
         const els = this.cells();
+        let single = 0;
         for (let i = 0; i < 81; i++) {
           if (st.grid[i]) continue;
+          if (target[i].length === 1) single++;
           const want = target[i].length >= 2 ? target[i] : [];
           if (want.join() === st.notes[i].join()) continue;
           pointer(els[i]); await sleep(8);
           if (st.notes[i].length) { key(document.body, 'Delete'); await sleep(8); }
           for (const d of want) { key(document.body, String(d)); await sleep(8); }
         }
+        return { single };
       },
       async put(i, d) {
         const el = this.cells()[i];

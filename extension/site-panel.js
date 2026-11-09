@@ -116,10 +116,10 @@
       else if (m.type === 'host-panel' && window !== window.top) { panelWin = window; startPanel(); lastKey = ''; poll(); }
       else if (m.type === 'deco') { deco = m.deco; paint(); }
       else if (m.type === 'notes' && adapter.setNotes) {
-        let ok = true;
-        try { await adapter.setNotes(m.notes); } catch (err) { ok = false; }
+        let ok = true, info = null;
+        try { info = await adapter.setNotes(m.notes); } catch (err) { ok = false; }
         lastKey = ''; poll();
-        send(e.source, { type: 'done', id: m.id, ok });
+        send(e.source, { type: 'done', id: m.id, ok, info });
       }
       else if (m.type === 'put') {
         let ok = true;
@@ -192,7 +192,7 @@
   let statusT = 0;
   function status(msg, kind = '') {
     const el = $p('.sdkh2-status'); el.textContent = msg; el.className = 'sdkh2-status ' + kind;
-    clearTimeout(statusT); statusT = setTimeout(() => { el.textContent = ''; }, 6000);
+    clearTimeout(statusT); statusT = setTimeout(() => { el.textContent = ''; }, Math.max(6000, msg.length * 70));
   }
 
   // the notes the engine works from: the site's own when it has them, otherwise
@@ -230,7 +230,7 @@
       for (const k of [...virt]) { const [i, d] = k.split(':').map(Number); if (m.grid[i] || m.grid.some((v, j) => v === d && E.PEERS[i].includes(j))) virt.delete(k); }
       st = stateFor(m);
       analyseSoon();
-    } else if (m.type === 'done' && waiting.has(m.id)) { waiting.get(m.id)(m.ok); waiting.delete(m.id); }
+    } else if (m.type === 'done' && waiting.has(m.id)) { waiting.get(m.id)(m.info && m.ok ? m.info : m.ok); waiting.delete(m.id); }
   });
   const writeNotes = (notes) => new Promise((resolve) => { const id = ++putId; waiting.set(id, resolve); send(src, { type: 'notes', id, notes }); });
   // candidates narrowed by the main techniques (pairs, triples, pointing, chains), never losing the real digit
@@ -330,8 +330,9 @@
         if (!a) return status('Fix the grid first.', 'err');
         const target = name === 'cands' ? E.candidates(st.grid).map((c) => (c ? [...c] : [])) : optimized().map((c) => (c ? [...c] : []));
         status('Writing notes…', 'ok');
-        const ok = await writeNotes(target);
-        status(ok ? (name === 'cands' ? 'Candidates written in every empty cell.' : 'Optimized notes written: narrowed by pairs, triples, pointing and chains.') : 'The game did not take the notes.', ok ? 'ok' : 'err');
+        const ok = await writeNotes(target), single = ok && ok.single;
+        status(!ok ? 'The game did not take the notes.' : (name === 'cands' ? 'Candidates written in every empty cell.' : 'Optimized notes written: narrowed by pairs, triples, pointing and chains.')
+          + (single ? ` ${single} cell${single > 1 ? 's are' : ' is'} left blank: only one candidate is left there — the answer itself — and this site can't keep a single pencil mark (one digit typed is an answer).` : ''), ok ? 'ok' : 'err');
         break;
       }
       case 'clearv': virt.clear(); if (src) send(src, { type: 'hello' }); status('Notes reset.', 'ok'); break;

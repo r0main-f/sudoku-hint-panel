@@ -74,7 +74,7 @@
           for (let d = 1; d <= 9; d++) {
             const n = D.note[i].get(d);
             if (n) html += `<i class="${n[0]}"${n[1] ? ` style="--c:${n[1]}"` : ''}>${d}</i>`;
-            else if (D.show[i].has(d) && D.plain) html += `<i class="plain">${d}</i>`;
+            else if (D.show[i].has(d) && (D.plain || (D.pinned && D.pinned[i] === d))) html += `<i class="plain">${d}</i>`;
             else html += '<i></i>';
           }
           html += '</div>';
@@ -234,6 +234,7 @@
   });
   const writeNotes = (notes) => new Promise((resolve) => { const id = ++putId; waiting.set(id, resolve); send(src, { type: 'notes', id, notes }); });
   // candidates narrowed by the main techniques (pairs, triples, pointing, chains), never losing the real digit
+  let pinned = {};   // cell → the one candidate a site couldn't keep as a note (LiveSudoku), drawn over the grid instead
   let optKey = '', optVal = null;
   function optimized() {
     const k = st.grid.join('');
@@ -270,6 +271,10 @@
       }
     } else if (st && view) card = `<div class="t">${st.grid.includes(0) ? 'No solution fits these digits' : 'Solved 🎉'}</div>`;
     if (!showCands) D.show = D.show.map((s, i) => (D.note[i].size ? s : new Set()));   // only the digits a hint is about
+    if (st) for (const [i, d] of Object.entries(pinned)) {
+      if (st.grid[i] || st.notes[i].size && !st.notes[i].has(d)) { delete pinned[i]; continue; }
+      D.show[i].add(d); D.pinned = pinned;
+    }
     if (src) send(src, { type: 'deco', deco: idle ? null : D });
     const cardEl = $p('.sdkh2-card'); cardEl.hidden = !card; cardEl.innerHTML = card;
     panelState();
@@ -331,8 +336,11 @@
         const target = name === 'cands' ? E.candidates(st.grid).map((c) => (c ? [...c] : [])) : optimized().map((c) => (c ? [...c] : []));
         status('Writing notes…', 'ok');
         const ok = await writeNotes(target), single = ok && ok.single;
+        pinned = {};
+        if (single) target.forEach((c, i) => { if (c.length === 1 && !st.grid[i]) pinned[i] = c[0]; });
+        render();
         status(!ok ? 'The game did not take the notes.' : (name === 'cands' ? 'Candidates written in every empty cell.' : 'Optimized notes written: narrowed by pairs, triples, pointing and chains.')
-          + (single ? ` ${single} cell${single > 1 ? 's are' : ' is'} left blank: only one candidate is left there — the answer itself — and this site can't keep a single pencil mark (one digit typed is an answer).` : ''), ok ? 'ok' : 'err');
+          + (single ? ` In ${single} cell${single > 1 ? 's' : ''} only one candidate is left: this site can't keep a single pencil mark (one digit typed is an answer), so it is drawn over the grid instead.` : ''), ok ? 'ok' : 'err');
         break;
       }
       case 'clearv': virt.clear(); if (src) send(src, { type: 'hello' }); status('Notes reset.', 'ok'); break;

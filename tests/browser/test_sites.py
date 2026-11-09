@@ -43,6 +43,9 @@ with sync_playwright() as p:
             pg.wait_for_timeout(2500)
             n = frame.evaluate(site_notes)
             check(n > 100 and 'Optimized notes written' in t('.sdkh2-status'), f'Optimized notes typed into the game ({n} notes)')
+            if 'livesudoku' in url:   # one candidate can't be a pencil mark there: drawn over the grid instead
+                pinned = frame.evaluate("document.querySelectorAll('.sdkh2-overlay .sdkh2-notes i.plain').length")
+                check(pinned > 0 and 'drawn over the grid instead' in t('.sdkh2-status'), f'single candidates drawn over the grid ({pinned})')
         elif 'nytimes' in url:
             n = frame.evaluate("Object.values(JSON.parse(localStorage.getItem('xwd-sudoku-easy')).manualCandidates).reduce((t,c)=>t+Object.values(c).filter(Boolean).length,0)")
             check(n > 100 and 'Optimized notes written' in t('.sdkh2-status'), f'Optimized notes typed into the game ({n} notes)')

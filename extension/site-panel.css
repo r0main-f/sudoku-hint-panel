@@ -4,8 +4,8 @@
 .sdkh2-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 2147482000; }
 .sdkh2-overlay[hidden] { display: none; }
 .sdkh2-cell { position: absolute; box-sizing: border-box; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
-.sdkh2-cell.look { background: rgba(255, 214, 0, .28); }
-.sdkh2-cell.unit { background: rgba(80, 110, 190, .12); }
+.sdkh2-cell.look { background: rgba(142, 68, 220, .2); box-shadow: inset 0 0 0 2px rgba(142, 68, 220, .55); }   /* violet: sites use yellow and blue for their own highlights */
+.sdkh2-cell.unit { background: rgba(142, 68, 220, .1); }
 .sdkh2-cell.single { background: rgba(46, 157, 87, .2); }
 .sdkh2-cell.dead { background: rgba(198, 40, 40, .14); }
 .sdkh2-ghost { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #2e9d57; font-weight: 700; }
@@ -48,6 +48,9 @@
 .sdkh2-panel button.b:hover { background: #e9eefa; }
 .sdkh2-panel button.b.on { background: #325aaf; border-color: #325aaf; color: #fff; }
 .sdkh2-panel button.b.armed { background: #fff3e0; border-color: #ef6c00; color: #b45200; }
+.sdkh2-links-row { margin-top: 4px; text-align: right; }
+.sdkh2-panel button.lnk { font: inherit; font-size: 11.5px; background: none; border: 0; color: #5b6b93; cursor: pointer; padding: 0; }
+.sdkh2-panel button.lnk:hover { color: #325aaf; text-decoration: underline; }
 .sdkh2-card { margin-top: 6px; padding: 7px 9px; border-radius: 8px; background: #f4f7fd; border: 1px solid #dfe6f5; font-size: 12.5px; }
 .sdkh2-card[hidden] { display: none; }
 .sdkh2-card .t { font-weight: 650; margin-bottom: 3px; }

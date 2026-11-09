@@ -13,6 +13,8 @@
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // ================================================================ grid agent (any frame)
+  let panelWin = window.top;   // where the panel runs: the top page, or this frame when the top page is a frameset
+  let panelStarted = false;
   (function agent() {
     let adapter = null, lastKey = '', deco = null, overlay = null, raf = 0;
     const boardRect = (els) => {
@@ -41,7 +43,7 @@
       try { els = adapter.cells(); st = els && adapter.read(); } catch (e) { st = null; }
       const vis = !!(st && visible(els));
       const key = vis ? st.grid.join('') + '|' + st.notes.map((n) => n.join('')).join(',') : 'hidden';
-      if (key !== lastKey) { lastKey = key; send(window.top, { type: 'state', site: adapter.id, name: adapter.name, visible: vis, ...(vis ? st : {}) }); }
+      if (key !== lastKey) { lastKey = key; send(panelWin, { type: 'state', site: adapter.id, name: adapter.name, canNote: !!adapter.setNotes, visible: vis, ...(vis ? st : {}) }); }
       if (!vis && overlay) overlay.hidden = true;
       else if (overlay && deco) { overlay.hidden = false; place(); }
     }
@@ -111,7 +113,14 @@
       const m = e.data && e.data[TAG];
       if (!m || !adapter) return;
       if (m.type === 'hello') { lastKey = ''; poll(); }
+      else if (m.type === 'host-panel' && window !== window.top) { panelWin = window; startPanel(); lastKey = ''; poll(); }
       else if (m.type === 'deco') { deco = m.deco; paint(); }
+      else if (m.type === 'notes' && adapter.setNotes) {
+        let ok = true;
+        try { await adapter.setNotes(m.notes); } catch (err) { ok = false; }
+        lastKey = ''; poll();
+        send(e.source, { type: 'done', id: m.id, ok });
+      }
       else if (m.type === 'put') {
         let ok = true;
         for (const [i, d] of m.moves) {
@@ -133,13 +142,25 @@
   })();
 
   // ================================================================ panel (top page only)
-  if (window !== window.top) return;
+  // ================================================================ panel
+  // The top page shows it, unless the top page is only a frameset (Web Sudoku): a frameset
+  // draws nothing of its own, so the frame with the grid shows the panel itself.
+  if (window === window.top) {
+    if (document.body && document.body.tagName === 'FRAMESET') {
+      addEventListener('message', (e) => { const m = e.data && e.data[TAG]; if (m && m.type === 'state' && e.source !== window) send(e.source, { type: 'host-panel' }); });
+      for (const f of document.querySelectorAll('frame, iframe')) send(f.contentWindow, { type: 'hello' });
+    } else startPanel();
+  }
+
+  function startPanel() {
+  if (panelStarted) return;
+  panelStarted = true;
   const E = createSudokuEngine(3, 3), X = createExplainer(E), Dz = createDecorator(E, X);
   const CAT_NAMES = { single: 'Single options', pointing: 'Pointing', subsets: 'Pairs & triples', coloring: 'Chains',
     quads: 'Quads', fish: 'X-wing & fish', wings: 'Wings', ur: 'Unique rectangles', chains: 'Long chains', forcing: 'Forcing chains' };
   const MAIN_CATS = ['single', 'pointing', 'subsets', 'coloring'], EXPERT_CATS = ['quads', 'fish', 'wings', 'ur', 'chains', 'forcing'];
   let src = null, st = null, a = null, grade = null, siteName = '';
-  let view = null, showCands = false, hover = null;
+  let view = null, showCands = null, hover = null, canNote = false;   // showCands: null | 'cands' | 'opt' (drawn over the grid)
   const assist = { key: null, level: 1, skipped: new Set(), cur: null };
   const virt = new Set();   // notes erased with Apply on this page ("cell:digit"), for sites without notes of their own
   let putId = 0;
@@ -152,7 +173,8 @@
     <div class="sdkh2-body">
       <p class="sdkh2-idle">Open a puzzle: hints appear when its grid is on screen.</p>
       <div class="sdkh2-sec first"><b>1 · Notes</b><small>no answers given</small></div>
-      <div class="sdkh2-row"><button class="b" data-act="cands" title="Show every possible digit in every empty cell (drawn over the grid, not typed)">✎ Candidates</button><button class="b" data-act="clearv" title="Forget the notes erased with Apply">↺ Reset notes</button></div>
+      <div class="sdkh2-row"><button class="b" data-act="cands">✎ Candidates</button><button class="b" data-act="opt">✎ Optimized</button></div>
+      <div class="sdkh2-links-row"><button class="lnk" data-act="clearv" title="Forget the notes erased with Apply on this page">↺ Reset notes</button></div>
       <div class="sdkh2-sec"><b>2 · Step by step assist</b><small>one at a time</small></div>
       <div class="sdkh2-row"><button class="b" data-act="assist" title="The easiest hint left: where to look, then what, then why">🧭 Assist</button><button class="b" data-act="one" title="Show one next move">☝ ONE single</button></div>
       <div class="sdkh2-card" hidden></div>
@@ -176,8 +198,12 @@
   // the notes the engine works from: the site's own when it has them, otherwise
   // the candidates minus what Apply erased here
   function stateFor(s) {
-    const grid = s.grid, siteNotes = s.notes.some((n) => n.length);
-    if (siteNotes) return { grid, notes: s.notes.map((n) => new Set(n)) };
+    const grid = s.grid, empty = grid.filter((v) => !v).length, noted = s.notes.filter((n, i) => !grid[i] && n.length).length;
+    if (noted) {
+      // most cells noted (some sites can't keep a single note in a cell): count the others as unknown, i.e. all their candidates
+      const cand = noted * 2 >= empty ? E.candidates(grid) : null;
+      return { grid, notes: s.notes.map((n, i) => new Set(n.length || !cand || !cand[i] ? n : [...cand[i]])) };
+    }
     if (!virt.size) return { grid, notes: grid.map(() => new Set()) };
     const cand = E.candidates(grid);
     return { grid, notes: cand.map((c, i) => (c ? new Set([...c].filter((d) => !virt.has(i + ':' + d))) : new Set())) };
@@ -200,12 +226,24 @@
     if (!m) return;
     if (m.type === 'state') {
       if (!m.visible) { if (e.source === src) { st = null; a = null; render(); } return; }
-      src = e.source; siteName = m.name;
+      src = e.source; siteName = m.name; canNote = !!m.canNote;
       for (const k of [...virt]) { const [i, d] = k.split(':').map(Number); if (m.grid[i] || m.grid.some((v, j) => v === d && E.PEERS[i].includes(j))) virt.delete(k); }
       st = stateFor(m);
       analyseSoon();
     } else if (m.type === 'done' && waiting.has(m.id)) { waiting.get(m.id)(m.ok); waiting.delete(m.id); }
   });
+  const writeNotes = (notes) => new Promise((resolve) => { const id = ++putId; waiting.set(id, resolve); send(src, { type: 'notes', id, notes }); });
+  // candidates narrowed by the main techniques (pairs, triples, pointing, chains), never losing the real digit
+  let optKey = '', optVal = null;
+  function optimized() {
+    const k = st.grid.join('');
+    if (k !== optKey) {
+      const r = E.analyse({ grid: st.grid, notes: st.grid.map(() => new Set()) }, E.MAIN_TIERS).reduced, sol = E.solveGrid(st.grid);
+      optVal = r.map((c, i) => (c && sol && !c.has(sol[i]) ? E.candidates(st.grid)[i] : c));
+      optKey = k;
+    }
+    return optVal;
+  }
   const put = (moves, delay) => new Promise((resolve) => { const id = ++putId; waiting.set(id, resolve); send(src, { type: 'put', id, moves, delay }); });
   send(window, { type: 'hello' });
   for (const f of document.querySelectorAll('iframe')) send(f.contentWindow, { type: 'hello' });
@@ -218,7 +256,8 @@
     const D = Dz.blank();
     let card = '';
     if (a) {
-      if (showCands) { D.plain = true; a.cand.forEach((c, i) => { if (c) (a.usesNotes ? st.notes[i] : c).forEach((d) => D.show[i].add(d)); }); }
+      if (showCands === 'cands') { D.plain = true; a.cand.forEach((c, i) => { if (c) (a.usesNotes ? st.notes[i] : c).forEach((d) => D.show[i].add(d)); }); }
+      if (showCands === 'opt') { D.plain = true; optimized().forEach((c, i) => { if (c) c.forEach((d) => D.show[i].add(d)); }); }
       if (view === 'assist') card = renderAssist(D);
       else if (view === 'one') {
         const sg = a.singles[0];
@@ -260,7 +299,11 @@
   function panelState() {
     for (const b of panel.querySelectorAll('[data-act="assist"]')) b.classList.toggle('on', view === 'assist');
     for (const b of panel.querySelectorAll('[data-act="one"]')) b.classList.toggle('on', view === 'one');
-    for (const b of panel.querySelectorAll('[data-act="cands"]')) b.classList.toggle('on', showCands);
+    for (const [k, b] of [['cands', $p('[data-act="cands"]')], ['opt', $p('[data-act="opt"]')]]) {
+      b.classList.toggle('on', !canNote && showCands === k);
+      b.title = (k === 'cands' ? 'Every possible digit in every empty cell' : 'The candidates already narrowed by pairs, triples, pointing and chains')
+        + (canNote ? ' — written as notes in the game' : ' — drawn over the grid (click again to hide)');
+    }
     const g = $p('.sdkh2-grade');
     g.hidden = !grade || !st;
     if (grade && st) {
@@ -282,7 +325,15 @@
   async function act(name, btn) {
     if (!st) return;
     switch (name) {
-      case 'cands': showCands = !showCands; render(); break;
+      case 'cands': case 'opt': {
+        if (!canNote) { showCands = showCands === name ? null : name; render(); break; }
+        if (!a) return status('Fix the grid first.', 'err');
+        const target = name === 'cands' ? E.candidates(st.grid).map((c) => (c ? [...c] : [])) : optimized().map((c) => (c ? [...c] : []));
+        status('Writing notes…', 'ok');
+        const ok = await writeNotes(target);
+        status(ok ? (name === 'cands' ? 'Candidates written in every empty cell.' : 'Optimized notes written: narrowed by pairs, triples, pointing and chains.') : 'The game did not take the notes.', ok ? 'ok' : 'err');
+        break;
+      }
       case 'clearv': virt.clear(); if (src) send(src, { type: 'hello' }); status('Notes reset.', 'ok'); break;
       case 'assist': view = view === 'assist' ? null : 'assist'; assist.key = null; assist.skipped.clear(); render(); break;
       case 'one': view = view === 'one' ? null : 'one'; render(); break;
@@ -348,4 +399,5 @@
     };
     addEventListener('pointermove', move); addEventListener('pointerup', up);
   });
+  }
 })();

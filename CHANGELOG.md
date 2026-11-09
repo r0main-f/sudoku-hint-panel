@@ -8,7 +8,7 @@ version in `extension/manifest.json`.
 
 Sudoku Hint Panel goes beyond sudoku.com: the same help on the most visited sudoku sites, and on any grid from 4×4 to 16×16.
 
-- **Other sudoku sites.** The panel now also works on The New York Times, Web Sudoku, LiveSudoku, sudoku-online.org and sudokuonline.io: difficulty badge, candidates, step by step assist, ONE single, Fill singles, Finish grid and every hint by technique, typed through each site's own controls.
+- **Other sudoku sites.** The panel now also works on The New York Times, Web Sudoku, LiveSudoku, sudoku-online.org and sudokuonline.io: difficulty badge, candidates, step by step assist, ONE single, Fill singles, Finish grid and every hint by technique, typed through each site's own controls. ✎ Candidates and ✎ Optimized write notes into the game where the site has them (NYT candidates, LiveSudoku pencil marks, sudokuonline.io notes) and draw them over the grid elsewhere.
 - **Any grid — 4×4 to 16×16.** The toolbar button opens a page where you paste or type any sudoku (4×4, 6×6, 8×8, 9×9, 12×12, 16×16) and get the same help: notes, step by step assist, Fill singles, Finish grid in solving order, every hint by technique, and a check of the grid (duplicates, no solution, several solutions).
 - The solving engine is now its own file (`engine.js`), for grids of any size (4×4 up to 16×16), ready for other sudoku sites and for 16×16 puzzles. The panel on sudoku.com behaves exactly as before: tested on about 800 boards and with every UI test.
 - Engine tests (`node tests/run.js`), run on every push.

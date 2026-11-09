@@ -64,6 +64,25 @@
         } catch (e) { /* no save yet */ }
         return noNotes();
       },
+      // write the given notes (81 arrays) in Candidate mode, toggling only what differs
+      async setNotes(target) {
+        const pad = (label) => [...document.querySelectorAll('.su-keyboard button')].find((b) => (b.getAttribute('aria-label') || b.textContent).trim() === label);
+        const st = this.read();
+        if (!st) return;
+        const cand = document.querySelector('.su-keyboard__mode.candidate'), normal = document.querySelector('.su-keyboard__mode.normal');
+        if (!cand || !pad('Number 1')) throw new Error('no candidate mode');
+        pointer(cand); await sleep(30);
+        try {
+          for (let i = 0; i < 81; i++) {
+            if (st.grid[i]) continue;
+            const have = new Set(st.notes[i]), want = new Set(target[i]);
+            const flip = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => have.has(d) !== want.has(d));
+            if (!flip.length) continue;
+            pointer(this.cells()[i]); await sleep(8);
+            for (const d of flip) { pointer(pad('Number ' + d)); await sleep(8); }
+          }
+        } finally { if (normal) pointer(normal); await sleep(20); }
+      },
       async put(i, d) {
         const pad = (label) => [...document.querySelectorAll('.su-keyboard button')].find((b) => (b.getAttribute('aria-label') || b.textContent).trim() === label);
         const normal = document.querySelector('.su-keyboard__mode.normal');
@@ -138,12 +157,33 @@
         const els = this.cells();
         if (!els) return null;
         const valueOf = (el) => { const s = el.querySelector('.fixedcell, .varcell'); return s ? digitOf(s.textContent) : 0; };
-        return { grid: els.map(valueOf), given: els.map((el) => !!el.querySelector('.fixedcell')), notes: noNotes() };
+        // pencil marks: <div class="pencilmarkscell"><span class="hintnumber">3</span><span class="hintblank">…
+        const marks = (el) => [...el.querySelectorAll('.pencilmarkscell .hintnumber')].map((x) => digitOf(x.textContent)).filter(Boolean);
+        return { grid: els.map(valueOf), given: els.map((el) => !!el.querySelector('.fixedcell')), notes: els.map(marks) };
+      },
+      // Pencil marks are typed like digits: a second digit in a cell turns it into marks, and
+      // from then on each digit toggles. So: clear the cell, then type the marks it should have.
+      // A cell with a single candidate keeps no mark (one digit would be an answer).
+      async setNotes(target) {
+        const st = this.read();
+        if (!st) return;
+        const els = this.cells();
+        for (let i = 0; i < 81; i++) {
+          if (st.grid[i]) continue;
+          const want = target[i].length >= 2 ? target[i] : [];
+          if (want.join() === st.notes[i].join()) continue;
+          pointer(els[i]); await sleep(8);
+          if (st.notes[i].length) { key(document.body, 'Delete'); await sleep(8); }
+          for (const d of want) { key(document.body, String(d)); await sleep(8); }
+        }
       },
       async put(i, d) {
-        pointer(this.cells()[i]);   // the cell's own onmousedown selects it
+        const el = this.cells()[i];
+        pointer(el);   // the cell's own onmousedown selects it
         await sleep(10);
-        key(document.body, d ? String(d) : 'Delete');   // the page listens on <body onkeydown>
+        // a digit typed over marks or over another digit would become a pencil mark: clear the cell first
+        if (el.querySelector('.pencilmarkscell, .varcell')) { key(document.body, 'Delete'); await sleep(10); }
+        if (d) key(document.body, String(d));   // the page listens on <body onkeydown>
       },
     },
 
@@ -170,6 +210,25 @@
         pointer(el);
         await sleep(10);
         key(el, d ? String(d) : 'Backspace');
+      },
+      // Notes mode (the Notes button), where each digit typed toggles that note
+      async setNotes(target) {
+        const st = this.read(), btn = document.getElementById('notes');
+        if (!st || !btn) throw new Error('no notes button');
+        const on = () => { const s = document.getElementById('notes-on'); return !!s && getComputedStyle(s).display !== 'none'; };
+        const was = on();
+        if (!was) { btn.click(); await sleep(30); }
+        try {
+          const els = this.cells();
+          for (let i = 0; i < 81; i++) {
+            if (st.grid[i]) continue;
+            const have = new Set(st.notes[i]), want = new Set(target[i]);
+            const flip = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter((d) => have.has(d) !== want.has(d));
+            if (!flip.length) continue;
+            pointer(els[i]); await sleep(8);
+            for (const d of flip) { key(els[i], String(d)); await sleep(8); }
+          }
+        } finally { if (!was && on()) { btn.click(); await sleep(20); } }
       },
     },
   ];

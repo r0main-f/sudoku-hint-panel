@@ -19,7 +19,7 @@ A free, open-source Chrome extension that helps you **learn sudoku techniques** 
 
 ## Other sudoku sites
 
-The same panel works on the most visited sudoku sites after sudoku.com: **The New York Times** (nytimes.com/puzzles/sudoku), **Web Sudoku**, **LiveSudoku**, **sudoku-online.org** and **sudokuonline.io**. It appears when a grid is on screen: difficulty badge, candidates drawn over the grid, step by step assist (where → what → why, then Apply), ONE single, Fill singles, Finish grid in solving order, and every hint by technique. Digits are typed through the site's own controls, so they count as your moves there. Notes are read where the site keeps them (NYT, sudokuonline.io); elsewhere, Apply on a pair or pointing hint keeps the erased notes in the panel.
+The same panel works on the most visited sudoku sites after sudoku.com: **The New York Times** (nytimes.com/puzzles/sudoku), **Web Sudoku**, **LiveSudoku**, **sudoku-online.org** and **sudokuonline.io**. It appears when a grid is on screen: difficulty badge, ✎ Candidates and ✎ Optimized notes, step by step assist (where → what → why, then Apply), ONE single, Fill singles, Finish grid in solving order, and every hint by technique. Digits are typed through the site's own controls, so they count as your moves there. Where the site has notes — the NYT's candidates, LiveSudoku's pencil marks, sudokuonline.io's notes — the panel reads yours and ✎ Candidates / ✎ Optimized write them into the game (toggling only what differs); on Web Sudoku and sudoku-online.org they are drawn over the grid, and Apply on a pair or pointing hint keeps the erased notes in the panel. Assist marks cells in violet, so its marks never look like the site's own yellow or blue highlights.
 
 ## Any grid — 4×4 to 16×16
 

@@ -125,7 +125,7 @@
     // ------------------------------------------------------------ sudoku-online.org
     {
       id: 'sudoku-online', name: 'Sudoku Online (sudoku-online.org)',
-      match: () => host() === 'sudoku-online.org' && !!document.getElementById('sudo_input_80'),
+      match: () => host() === 'sudoku-online.org' && !!document.getElementById('sudo_input_80') && !document.getElementById('sudo_input_81'),   // 9×9 only (the site also has 8×8 and 16×16 boards)
       cells() {
         const out = [];
         for (let i = 0; i < 81; i++) { const el = document.getElementById('sudo_input_' + i); if (!el) return null; out.push(el); }
@@ -134,7 +134,8 @@
       read() {
         const els = this.cells();
         if (!els) return null;
-        return { grid: els.map((el) => digitOf(el.textContent)), given: els.map((el) => el.classList.contains('no_select')), notes: noNotes() };
+        // the puzzle's digits: class no_select on the home page, an inline black colour on the level pages (typed digits are blue)
+        return { grid: els.map((el) => digitOf(el.textContent)), given: els.map((el) => el.classList.contains('no_select') || (!!digitOf(el.textContent) && /color/.test(el.getAttribute('style') || ''))), notes: noNotes() };
       },
       async put(i, d) {
         const el = this.cells()[i];
@@ -245,7 +246,9 @@
     },
   ];
 
-  const findAdapter = () => ADAPTERS.find((a) => { try { return a.match(); } catch (e) { return false; } }) || null;
+  // Killer sudoku needs its cages, which the engine doesn't read: its hints and solution would be wrong
+  const findAdapter = () => (/killer/i.test(location.pathname) ? null
+    : ADAPTERS.find((a) => { try { return a.match(); } catch (e) { return false; } }) || null);
   const api = { ADAPTERS, findAdapter };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.SDKH_SITES = api;

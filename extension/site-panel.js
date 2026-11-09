@@ -202,23 +202,38 @@
     if (noted) {
       // most cells noted (some sites can't keep a single note in a cell): count the others as unknown, i.e. all their candidates
       const cand = noted * 2 >= empty ? E.candidates(grid) : null;
-      return { grid, notes: s.notes.map((n, i) => new Set(n.length || !cand || !cand[i] ? n : [...cand[i]])) };
+      return { grid, given: s.given, notes: s.notes.map((n, i) => new Set(n.length || !cand || !cand[i] ? n : [...cand[i]])) };
     }
-    if (!virt.size) return { grid, notes: grid.map(() => new Set()) };
+    if (!virt.size) return { grid, given: s.given, notes: grid.map(() => new Set()) };
     const cand = E.candidates(grid);
-    return { grid, notes: cand.map((c, i) => (c ? new Set([...c].filter((d) => !virt.has(i + ':' + d))) : new Set())) };
+    return { grid, given: s.given, notes: cand.map((c, i) => (c ? new Set([...c].filter((d) => !virt.has(i + ':' + d))) : new Set())) };
   }
   let anaT = 0;
   function analyseSoon() {
     clearTimeout(anaT);
     anaT = setTimeout(() => {
-      a = null; grade = null;
-      if (st && st.grid.includes(0) && E.solveGrid(st.grid)) {
-        a = E.analyse(st); Dz.colour(a);
-        grade = E.gradeGrid(st.grid);
-      } else if (st && !st.grid.includes(0)) grade = { score: 0 };
+      a = null; grade = null; wrong = null;
+      try {
+        if (st && st.grid.includes(0) && E.solveGrid(st.grid)) {
+          a = E.analyse(st); Dz.colour(a);
+          grade = E.gradeGrid(st.grid);
+        } else if (st && st.grid.includes(0)) wrong = findWrong(st);
+        else if (st) grade = { score: 0 };
+      } catch (err) { console.warn('[Sudoku Hint Panel]', err); }
       render();
     }, 20);
+  }
+  // No solution fits the board: a digit typed in is wrong. The suspects are the typed digits
+  // (never the puzzle's own) that clash with another in a row, column or box, or whose
+  // removal makes the grid solvable again.
+  let wrong = null;
+  function findWrong(s) {
+    const typed = s.grid.map((v, i) => (v && !(s.given && s.given[i]) ? i : -1)).filter((i) => i >= 0);
+    const clash = new Set();
+    for (const u of E.UNITS) for (const i of u.cells) for (const j of u.cells) if (i < j && s.grid[i] && s.grid[i] === s.grid[j]) { clash.add(i); clash.add(j); }
+    let cells = typed.filter((i) => clash.has(i));
+    if (!cells.length) cells = typed.filter((i) => { const g = s.grid.slice(); g[i] = 0; return !!E.solveGrid(g); });
+    return { cells, clash: clash.size > 0 };
   }
 
   addEventListener('message', (e) => {
@@ -269,7 +284,12 @@
         else if (view.cat === 'single') a.singles.forEach((sg) => Dz.single(D, sg, 1, a, st));
         else a[view.cat].forEach((g) => Dz.hint(D, g, 1, a, st.grid));
       }
-    } else if (st && view) card = `<div class="t">${st.grid.includes(0) ? 'No solution fits these digits' : 'Solved 🎉'}</div>`;
+    } else if (st && wrong) {
+      wrong.cells.forEach((i) => { D.cls[i].add('dead'); D.frames[i].push({ conflict: true }); });
+      const names = wrong.cells.slice(0, 4).map((i) => E.cellName(i)).join(', ');
+      card = `<div class="t">A digit on the board is wrong</div><small>${wrong.clash ? 'The same digit twice in a row, column or box' : 'No solution fits the digits typed in'}${
+        wrong.cells.length ? ` — ${wrong.cells.length === 1 ? 'the culprit is' : 'one of these is wrong'}: <b>${names}${wrong.cells.length > 4 ? '…' : ''}</b> (red). Fix it and the hints come back.` : '.'}</small>`;
+    } else if (st && view && !st.grid.includes(0)) card = '<div class="t">Solved 🎉</div>';
     if (!showCands) D.show = D.show.map((s, i) => (D.note[i].size ? s : new Set()));   // only the digits a hint is about
     if (st) for (const [i, d] of Object.entries(pinned)) {
       if (st.grid[i] || st.notes[i].size && !st.notes[i].has(d)) { delete pinned[i]; continue; }
@@ -332,7 +352,7 @@
     switch (name) {
       case 'cands': case 'opt': {
         if (!canNote) { showCands = showCands === name ? null : name; render(); break; }
-        if (!a) return status('Fix the grid first.', 'err');
+        if (!a) return status(wrong ? 'A digit on the board is wrong (red): fix it first.' : 'Nothing to do on this grid.', 'err');
         const target = name === 'cands' ? E.candidates(st.grid).map((c) => (c ? [...c] : [])) : optimized().map((c) => (c ? [...c] : []));
         status('Writing notes…', 'ok');
         const ok = await writeNotes(target), single = ok && ok.single;
@@ -368,7 +388,7 @@
         }
         btn.classList.remove('armed'); btn.textContent = '🏁 Finish grid';
         const path = E.solvePath(st.grid);
-        if (!path) return status('No solution fits the digits on the board — check for a mistake.', 'err');
+        if (!path) return status('A digit on the board is wrong (red): fix it first.', 'err');
         view = null; render();
         status(`Finishing: ${path.steps.length} digits, simplest first…`, 'ok');
         await put(path.steps.map((s) => [s.i, s.d]), 40);

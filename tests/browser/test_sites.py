@@ -34,6 +34,11 @@ with sync_playwright() as p:
         check(ui.evaluate("!!document.querySelector('.sdkh2-panel') && !document.querySelector('.sdkh2-panel').classList.contains('idle') && document.querySelector('.sdkh2-panel').getBoundingClientRect().width > 100"), 'panel shown and active on the grid')
         check(t('.sdkh2-grade') == '7/10', f"difficulty badge ({t('.sdkh2-grade')})")
         check('Single options20' in t('.sdkh2-cats'), 'hints counted')
+        if 'livesudoku' in url:   # a wrong digit typed by the player is named, and the hints come back once it's gone
+            frame.evaluate("selectcell(0); document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'9',keyCode:57,which:57,bubbles:true}))"); pg.wait_for_timeout(900)
+            check('A digit on the board is wrong' in t('.sdkh2-card') and 'r1c1' in t('.sdkh2-card'), 'wrong digit named: ' + t('.sdkh2-card')[30:120])
+            frame.evaluate("selectcell(0); document.body.dispatchEvent(new KeyboardEvent('keydown',{key:'Delete',keyCode:46,which:46,bubbles:true}))"); pg.wait_for_timeout(900)
+            check(t('.sdkh2-grade') == '7/10' and not t('.sdkh2-card'), 'hints back after fixing it')
         # notes: written into the game where the site has notes (NYT), drawn over the grid elsewhere
         ui.click('.sdkh2-panel [data-act=opt]'); pg.wait_for_timeout(3000 if 'nytimes' in url else 500)
         NOTES_JS = {'livesudoku': "document.querySelectorAll('#playtable .hintnumber').length",

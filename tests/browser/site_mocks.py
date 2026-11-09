@@ -53,13 +53,14 @@ SUDOKU_ONLINE=SUDOKU_ONLINE.replace('%ROWS%',rows)
 
 LIVESUDOKU = """<!doctype html><html><head><meta charset=utf-8><style>#playtable td{width:46px;height:46px;border:1px solid #bbb;text-align:center;font:22px sans-serif}</style></head>
 <body onkeydown="return processkeySudoku(event)"><h1>Easy Sudoku</h1><table id=playtable class=width400desktop>%ROWS%</table>
+<div>Pencil Marks&nbsp;<input onclick="allowmarks=this.checked?1:0" class="form-check-input" type="checkbox" id="allowmarks" checked></div>
 <script>
-let selectedcell=-1; function selectcell(i){selectedcell=i;}
+let selectedcell=-1, allowmarks=1; function selectcell(i){selectedcell=i;}
 function drawMarks(td,i,m){let h='<div class="pencilmarkscell">';for(let d=1;d<=9;d++){h+=m.has(d)?`<span id="hint${i}n${d}" class="hintnumber">${d}</span>`:`<span id="hint${i}n${d}" class="hintblank">&nbsp;</span>`;if(d%3===0&&d<9)h+='<br>';}td.innerHTML=h+'</div>';}
 function processkeySudoku(e){if(selectedcell<0)return true;const i=selectedcell,td=document.getElementById('td'+i);if(td.querySelector('.fixedcell'))return true;const k=e.keyCode;
  if(k>=49&&k<=57){const d=k-48;const v=td.querySelector('.varcell');const pm=td.querySelector('.pencilmarkscell');
    if(pm){const m=new Set([...pm.querySelectorAll('.hintnumber')].map(x=>+x.textContent));m.has(d)?m.delete(d):m.add(d);drawMarks(td,i,m);}
-   else if(v&&+v.textContent!==d){drawMarks(td,i,new Set([+v.textContent,d]));}
+   else if(v&&+v.textContent!==d&&allowmarks){drawMarks(td,i,new Set([+v.textContent,d]));}
    else td.innerHTML='<span class="varcell" style="color:#1F45FC;">'+d+'</span>';}
  else if(k===46||k===8){td.innerHTML='&nbsp;';}return false;}
 </script></body></html>"""

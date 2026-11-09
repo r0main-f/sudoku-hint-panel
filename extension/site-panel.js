@@ -42,8 +42,9 @@
       let st = null, els = null;
       try { els = adapter.cells(); st = els && adapter.read(); } catch (e) { st = null; }
       const vis = !!(st && visible(els));
-      const key = vis ? st.grid.join('') + '|' + st.notes.map((n) => n.join('')).join(',') : 'hidden';
-      if (key !== lastKey) { lastKey = key; send(panelWin, { type: 'state', site: adapter.id, name: adapter.name, canNote: !!adapter.setNotes, visible: vis, ...(vis ? st : {}) }); }
+      const noteOk = !!adapter.setNotes && (!adapter.canNote || adapter.canNote());
+      const key = vis ? st.grid.join('') + '|' + st.notes.map((n) => n.join('')).join(',') + '|' + noteOk : 'hidden';
+      if (key !== lastKey) { lastKey = key; send(panelWin, { type: 'state', site: adapter.id, name: adapter.name, canNote: !!adapter.setNotes && (!adapter.canNote || adapter.canNote()), visible: vis, ...(vis ? st : {}) }); }
       if (!vis && overlay) overlay.hidden = true;
       else if (overlay && deco) { overlay.hidden = false; place(); }
     }
@@ -117,7 +118,15 @@
       else if (m.type === 'deco') { deco = m.deco; paint(); }
       else if (m.type === 'notes' && adapter.setNotes) {
         let ok = true, info = null;
+        const before = adapter.read();
         try { info = await adapter.setNotes(m.notes); } catch (err) { ok = false; }
+        // safety net: writing notes must never leave a digit in a cell that was empty
+        const after = adapter.read();
+        if (before && after) {
+          const typed = after.grid.map((v, i) => (v && !before.grid[i] ? i : -1)).filter((i) => i >= 0);
+          for (const i of typed) { try { await adapter.put(i, 0); } catch (err) { /* keep going */ } await sleep(20); }
+          if (typed.length) ok = false;
+        }
         lastKey = ''; poll();
         send(e.source, { type: 'done', id: m.id, ok, info });
       }
@@ -357,9 +366,10 @@
         status('Writing notes…', 'ok');
         const ok = await writeNotes(target), single = ok && ok.single;
         pinned = {};
+        if (!ok) { showCands = name; canNote = false; }
         if (single) target.forEach((c, i) => { if (c.length === 1 && !st.grid[i]) pinned[i] = c[0]; });
         render();
-        status(!ok ? 'The game did not take the notes.' : (name === 'cands' ? 'Candidates written in every empty cell.' : 'Optimized notes written: narrowed by pairs, triples, pointing and chains.')
+        status(!ok ? 'The game did not take the notes — nothing was left in the grid. Drawn over the grid instead.' : (name === 'cands' ? 'Candidates written in every empty cell.' : 'Optimized notes written: narrowed by pairs, triples, pointing and chains.')
           + (single ? ` In ${single} cell${single > 1 ? 's' : ''} only one candidate is left: this site can't keep a single pencil mark (one digit typed is an answer), so it is drawn over the grid instead.` : ''), ok ? 'ok' : 'err');
         break;
       }

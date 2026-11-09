@@ -48,6 +48,15 @@ with sync_playwright() as p:
             pg.wait_for_timeout(2500)
             n = frame.evaluate(site_notes)
             check(n > 100 and 'Optimized notes written' in t('.sdkh2-status'), f'Optimized notes typed into the game ({n} notes)')
+            if 'livesudoku' in url:   # Pencil Marks switched off in the game: notes are drawn, never typed as answers
+                ui.click('.sdkh2-panel [data-act=clearv]'); frame.evaluate("document.getElementById('allowmarks').click()"); pg.wait_for_timeout(1200)
+                before = frame.evaluate("[...Array(81).keys()].filter(i=>document.querySelector('#td'+i+' .varcell')).length")
+                ui.click('.sdkh2-panel [data-act=cands]'); pg.wait_for_timeout(1500)
+                after = frame.evaluate("[...Array(81).keys()].filter(i=>document.querySelector('#td'+i+' .varcell')).length")
+                drawn = frame.evaluate("document.querySelectorAll('.sdkh2-overlay .sdkh2-notes i.plain').length")
+                check(after == before and drawn > 50, f'Pencil Marks off: no digit typed ({before}→{after}), candidates drawn ({drawn})')
+                ui.click('.sdkh2-panel [data-act=cands]'); frame.evaluate("document.getElementById('allowmarks').click()"); pg.wait_for_timeout(1200)
+                ui.click('.sdkh2-panel [data-act=opt]'); pg.wait_for_timeout(2500)
             if 'livesudoku' in url:   # one candidate can't be a pencil mark there: drawn over the grid instead
                 pinned = frame.evaluate("document.querySelectorAll('.sdkh2-overlay .sdkh2-notes i.plain').length")
                 check(pinned > 0 and 'drawn over the grid instead' in t('.sdkh2-status'), f'single candidates drawn over the grid ({pinned})')

@@ -161,10 +161,15 @@
         const marks = (el) => [...el.querySelectorAll('.pencilmarkscell .hintnumber')].map((x) => digitOf(x.textContent)).filter(Boolean);
         return { grid: els.map(valueOf), given: els.map((el) => !!el.querySelector('.fixedcell')), notes: els.map(marks) };
       },
+      // Only when the player has "Pencil Marks" switched on: otherwise every digit typed is an answer.
+      canNote() { const box = document.getElementById('allowmarks'); return !!box && box.checked; },
       // Pencil marks are typed like digits: a second digit in a cell turns it into marks, and
       // from then on each digit toggles. So: clear the cell, then type the marks it should have.
-      // A cell with a single candidate keeps no mark (one digit would be an answer).
+      // A cell with a single candidate keeps no mark (one digit would be an answer). Each cell is
+      // checked right after: if the game kept a digit instead of marks, the cell is cleared and
+      // writing stops, so a note can never end up as an answer.
       async setNotes(target) {
+        if (!this.canNote()) throw new Error('pencil marks are off');
         const st = this.read();
         if (!st) return;
         const els = this.cells();
@@ -177,6 +182,10 @@
           pointer(els[i]); await sleep(8);
           if (st.notes[i].length) { key(document.body, 'Delete'); await sleep(8); }
           for (const d of want) { key(document.body, String(d)); await sleep(8); }
+          if (els[i].querySelector('.varcell')) {
+            key(document.body, 'Delete'); await sleep(8);
+            throw new Error('the game kept a digit instead of pencil marks');
+          }
         }
         return { single };
       },
